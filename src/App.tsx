@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { allTags, filterByTag, projects } from "./data";
+import { allTags, contact, filterByTag, projects } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
@@ -26,9 +26,14 @@ export default function App() {
         </article>
       ))}
 
-      <footer className="muted">
-        <a href="https://github.com/Sabin78910">GitHub</a>
-      </footer>
+      <section aria-labelledby="contact-heading">
+        <h2 id="contact-heading">Contact</h2>
+        <p>
+          <a href={`mailto:${contact.email}`}>Email</a>
+          {" · "}
+          <a href={contact.github} target="_blank" rel="noreferrer">GitHub</a>
+        </p>
+      </section>
     </main>
   );
 }
