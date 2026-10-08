@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { allTags, filterByTag, projects } from "./data";
+import { allTags, filterByQuery, filterByTag, projects } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
-  const shown = filterByTag(projects, tag);
+  const [query, setQuery] = useState("");
+  const shown = filterByQuery(filterByTag(projects, tag), query);
 
   return (
     <main>
@@ -16,6 +17,15 @@ export default function App() {
           <button key={t} onClick={() => setTag(t)} aria-pressed={tag === t}>{t}</button>
         ))}
       </div>
+
+      <input
+        type="search"
+        aria-label="Search projects"
+        placeholder="Search projects…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        style={{ marginBottom: 16 }}
+      />
 
       {shown.map((p) => (
         <article className="card" key={p.name}>
