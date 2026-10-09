@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
-import { allTags, contact, filterByQuery, filterByTag, projects, skills } from "./data";
+import { allTags, contact, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Project | null>(null);
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme());
   const shown = filterByQuery(filterByTag(projects, tag), query);
 
@@ -26,6 +27,10 @@ export default function App() {
       <h1>Sabin Khanal</h1>
       <p className="muted">Android &amp; web developer — Kotlin, React, TypeScript, Python.</p>
 
+      {selected ? (
+        <CaseStudy project={selected} onBack={() => setSelected(null)} />
+      ) : (
+        <>
       <input
         type="search"
         aria-label="Search projects"
@@ -47,9 +52,13 @@ export default function App() {
           <h2 style={{ marginTop: 0 }}>{p.name}</h2>
           <p>{p.description}</p>
           <p className="muted">{p.tags.join(" · ")}</p>
+          <button onClick={() => setSelected(p)} aria-label={`Read case study: ${p.name}`}>Case study →</button>
+          {" "}
           <a href={p.repo} target="_blank" rel="noreferrer">View code →</a>
         </article>
       ))}
+        </>
+      )}
 
       <section aria-labelledby="skills-heading">
         <h2 id="skills-heading">Skills</h2>
@@ -74,5 +83,31 @@ export default function App() {
         </p>
       </section>
     </main>
+  );
+}
+
+function CaseStudy({ project: p, onBack }: { project: Project; onBack: () => void }) {
+  return (
+    <section aria-label={p.name} className="card">
+      <button onClick={onBack}>← Back to projects</button>
+      <h2>{p.name}</h2>
+      <h3>Problem</h3>
+      <p>{p.problem}</p>
+      <h3>Approach</h3>
+      <p>{p.approach}</p>
+      <h3>Stack</h3>
+      <p>{p.stack.join(", ")}</p>
+      <h3>Results</h3>
+      <p>{p.results}</p>
+      <p>
+        <a href={p.repo} target="_blank" rel="noreferrer">Repo</a>
+        {p.live && (
+          <>
+            {" · "}
+            <a href={p.live} target="_blank" rel="noreferrer">Live site</a>
+          </>
+        )}
+      </p>
+    </section>
   );
 }
