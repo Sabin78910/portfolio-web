@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sabin78910.github.io/portfolio-web/sitemap.xml
