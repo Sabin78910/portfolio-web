@@ -195,7 +195,8 @@ describe("bento project grid", () => {
     const tile = screen.getByRole("article", { name: "Block Drop" });
     expect(tile).toHaveClass("tile", "tile-featured");
     const img = within(tile).getByRole("img", { name: /block drop/i });
-    expect(img).toHaveAttribute("src", "/blockdrop-feature.jpg");
+    expect(img).toHaveAttribute("src", "./blockdrop-feature.jpg");
+    expect(img.getAttribute("src")).not.toMatch(/^\/[^/]/);
     expect(img).toHaveAttribute("loading", "lazy");
     expect(img).toHaveAttribute("width", "1024");
     expect(img).toHaveAttribute("height", "500");
