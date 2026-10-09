@@ -69,3 +69,15 @@ export const skills: SkillGroup[] = [
   { area: "Backend", items: ["Node", "FastAPI", "REST APIs"] },
   { area: "ML", items: ["Python", "scikit-learn", "pandas"] },
 ];
+
+export function computeStats(list: Project[]) {
+  return {
+    apps: list.length,
+    apis: list.filter((p) => p.api).length,
+    tested: list.filter((p) => /\btests?\b/i.test(`${p.approach} ${p.results}`)).length,
+  };
+}
+
+export function techStack(list: Project[]): string[] {
+  return [...new Set(list.flatMap((p) => p.stack))].sort();
+}
