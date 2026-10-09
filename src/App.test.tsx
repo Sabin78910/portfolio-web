@@ -186,3 +186,34 @@ describe("redesign hero", () => {
     expect(screen.getByRole("button", { name: "All" }).parentElement).toHaveClass("chips");
   });
 });
+
+describe("bento project grid", () => {
+  test("Block Drop is the featured tile with a lazy, sized store image", () => {
+    render(<App />);
+    const featured = projects.filter((p) => p.featured);
+    expect(featured.map((p) => p.name)).toEqual(["Block Drop"]);
+    const tile = screen.getByRole("article", { name: "Block Drop" });
+    expect(tile).toHaveClass("tile", "tile-featured");
+    const img = within(tile).getByRole("img", { name: /block drop/i });
+    expect(img).toHaveAttribute("src", "/blockdrop-feature.jpg");
+    expect(img).toHaveAttribute("loading", "lazy");
+    expect(img).toHaveAttribute("width", "1024");
+    expect(img).toHaveAttribute("height", "500");
+  });
+
+  test("other tiles have a category icon, gradient class, status pill and tags", () => {
+    render(<App />);
+    const tile = screen.getByRole("article", { name: "Notes" });
+    expect(tile).not.toHaveClass("tile-featured");
+    expect(tile).toHaveAttribute("data-category", "Android");
+    expect(tile.querySelector(".tile-icon")).not.toBeNull();
+    expect(within(tile).getByText("Open source")).toHaveClass("pill");
+    expect(within(tile).getByText("Kotlin")).toBeInTheDocument();
+    expect(within(screen.getByRole("article", { name: "Todo" })).getByText("Live demo")).toHaveClass("pill");
+  });
+
+  test("grid container exists", () => {
+    render(<App />);
+    expect(screen.getByRole("article", { name: "Notes" }).parentElement).toHaveClass("bento");
+  });
+});

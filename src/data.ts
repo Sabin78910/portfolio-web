@@ -9,11 +9,14 @@ export interface Project {
   results: string;
   live?: string;
   api?: string;
+  featured?: boolean;
+  image?: { src: string; width: number; height: number; alt: string };
 }
 
 const GH = "https://github.com/Sabin78910";
 
 export const projects: Project[] = [
+  { name: "Block Drop", description: "Polished block puzzle game built with Unity.", tags: ["Game", "Unity", "C#"], repo: `${GH}/blockdrop-puzzle-unity`, problem: "Casual puzzle games often feel cluttered with ads and weak feedback.", approach: "Unity game with clean grid logic, satisfying drop and clear effects, and a store-ready presentation.", stack: ["Unity", "C#"], results: "A complete, store-ready puzzle game.", featured: true, image: { src: "/blockdrop-feature.jpg", width: 1024, height: 500, alt: "Block Drop store feature graphic" } },
   { name: "Expense Tracker", description: "Android app to track spending by category.", tags: ["Android", "Kotlin", "Compose"], repo: `${GH}/expense-tracker-android`, problem: "Tracking everyday spending in spreadsheets is slow and easy to skip.", approach: "Single-activity Compose UI with Room storage; expenses grouped by category with monthly totals.", stack: ["Kotlin", "Jetpack Compose", "Room"], results: "Logging an expense takes a few taps and totals update instantly offline." },
   { name: "EMI Calculator", description: "Android loan EMI calculator with amortization schedule.", tags: ["Android", "Kotlin", "Finance"], repo: `${GH}/emi-calculator-android`, problem: "Borrowers struggle to see how much interest a loan really costs.", approach: "Pure Kotlin amortization logic with unit tests, rendered as a month-by-month schedule.", stack: ["Kotlin", "Jetpack Compose"], results: "Shows total interest and a full repayment schedule for any amount, rate and term." },
   { name: "Notes", description: "Android notes with search and pinning.", tags: ["Android", "Kotlin"], repo: `${GH}/notes-android`, problem: "Quick notes get lost without fast search and a way to keep key ones on top.", approach: "Room full-text style search and a pinned flag that sorts important notes first.", stack: ["Kotlin", "Room"], results: "Find any note while typing; pinned notes stay at the top." },
@@ -24,6 +27,19 @@ export const projects: Project[] = [
   { name: "Bookstore API", description: "FastAPI service for books.", tags: ["Backend", "Python", "FastAPI"], repo: `${GH}/bookstore-api-python`, problem: "A clean reference service for book data with automatic docs.", approach: "FastAPI with Pydantic models and generated OpenAPI documentation.", stack: ["Python", "FastAPI", "Pydantic"], results: "Typed endpoints with interactive API docs out of the box.", api: "https://bookstore-api-lhpl.onrender.com" },
   { name: "House Price ML", description: "Regression model predicting house prices.", tags: ["ML", "Python", "scikit-learn"], repo: `${GH}/house-price-ml`, problem: "Estimating house prices by hand is inconsistent.", approach: "Feature preparation with pandas and a scikit-learn regression model evaluated on held-out data.", stack: ["Python", "scikit-learn", "pandas"], results: "A reproducible regression baseline for price prediction." },
 ];
+
+/** Category (first tag) drives the tile icon and gradient. */
+export const categoryIcons: Record<string, string> = {
+  Android: "📱",
+  Web: "🌐",
+  Backend: "⚙️",
+  ML: "🧠",
+  Game: "🎮",
+};
+
+export function categoryOf(p: Project): string {
+  return p.tags[0];
+}
 
 export function allTags(list: Project[]): string[] {
   return [...new Set(list.flatMap((p) => p.tags))].sort();
