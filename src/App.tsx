@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { checkHealth, statusLabel, type ApiStatus } from "./status";
 import { loadRepos, type Repo } from "./github";
-import { allTags, contact, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
+import { allTags, categoryIcons, categoryOf, contact, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
@@ -60,30 +60,11 @@ export default function App() {
         ))}
       </div>
 
-      {shown.map((p) => (
-        <article className="card" key={p.name}>
-          <h2 style={{ marginTop: 0 }}>{p.name}</h2>
-          <p>{p.description}</p>
-          <p className="muted">{p.tags.join(" · ")}</p>
-          <button onClick={() => setSelected(p)} aria-label={`Read case study: ${p.name}`}>Case study →</button>
-          {" "}
-          <a href={p.repo} target="_blank" rel="noreferrer">View code →</a>
-          {p.live && (
-            <>
-              {" "}
-              <a href={p.live} target="_blank" rel="noreferrer" aria-label={`Live demo: ${p.name}`}>Live demo →</a>
-            </>
-          )}
-          {p.api && (
-            <>
-              {" "}
-              <a href={p.api} target="_blank" rel="noreferrer" aria-label={`Live API: ${p.name}`}>Live API →</a>
-              {" "}
-              <StatusBadge api={p.api} />
-            </>
-          )}
-        </article>
-      ))}
+      <div className="bento">
+        {shown.map((p) => (
+          <ProjectTile key={p.name} p={p} onOpen={() => setSelected(p)} />
+        ))}
+      </div>
         </>
       )}
 
@@ -160,7 +141,7 @@ function StatusBadge({ api }: { api: string }) {
     };
   }, [api]);
   return (
-    <span className="muted" role="status" data-status={status ?? "checking"}>
+    <span className="pill" role="status" data-status={status ?? "checking"}>
       {status ? statusLabel[status] : "Checking…"}
     </span>
   );
@@ -189,5 +170,54 @@ function CaseStudy({ project: p, onBack }: { project: Project; onBack: () => voi
         )}
       </p>
     </section>
+  );
+}
+
+function ProjectTile({ p, onOpen }: { p: Project; onOpen: () => void }) {
+  const category = categoryOf(p);
+  return (
+    <article
+      className={`tile${p.featured ? " tile-featured" : ""}`}
+      data-category={category}
+      aria-labelledby={`tile-${p.name.replace(/\s+/g, "-")}`}
+    >
+      {p.image && (
+        <img
+          className="tile-image"
+          src={p.image.src}
+          alt={p.image.alt}
+          width={p.image.width}
+          height={p.image.height}
+          loading="lazy"
+        />
+      )}
+      <div className="tile-body">
+        <div className="tile-head">
+          <span className="tile-icon" aria-hidden="true">{categoryIcons[category] ?? "✨"}</span>
+          {p.api ? (
+            <StatusBadge api={p.api} />
+          ) : (
+            <span className="pill">{p.live ? "Live demo" : "Open source"}</span>
+          )}
+        </div>
+        <h2 id={`tile-${p.name.replace(/\s+/g, "-")}`}>{p.name}</h2>
+        <p>{p.description}</p>
+        <ul className="tags">
+          {p.tags.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+        <div className="tile-links">
+          <button onClick={onOpen} aria-label={`Read case study: ${p.name}`}>Case study →</button>
+          <a href={p.repo} target="_blank" rel="noreferrer">View code →</a>
+          {p.live && (
+            <a href={p.live} target="_blank" rel="noreferrer" aria-label={`Live demo: ${p.name}`}>Live demo →</a>
+          )}
+          {p.api && (
+            <a href={p.api} target="_blank" rel="noreferrer" aria-label={`Live API: ${p.name}`}>Live API →</a>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
