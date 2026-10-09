@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
-import { allTags, contact, filterByQuery, filterByTag, projects } from "./data";
+import { allTags, contact, filterByQuery, filterByTag, projects, skills } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
@@ -50,6 +50,20 @@ export default function App() {
           <a href={p.repo} target="_blank" rel="noreferrer">View code →</a>
         </article>
       ))}
+
+      <section aria-labelledby="skills-heading">
+        <h2 id="skills-heading">Skills</h2>
+        {skills.map((g) => (
+          <div role="group" aria-label={g.area} key={g.area}>
+            <h3>{g.area}</h3>
+            <ul>
+              {g.items.map((i) => (
+                <li key={i}>{i}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
 
       <section aria-labelledby="contact-heading">
         <h2 id="contact-heading">Contact</h2>
