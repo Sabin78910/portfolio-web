@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
-import { allTags, contact, filterByQuery, filterByTag, projects } from "./data";
+import { allTags, contact, filterByQuery, filterByTag, projects, skills } from "./data";
 
 test("filters projects by tag", () => {
   expect(filterByTag(projects, "Android")).toHaveLength(3);
@@ -76,4 +76,14 @@ describe("theme toggle", () => {
     expect(document.documentElement.getAttribute("data-theme")).toBeTruthy();
     vi.restoreAllMocks();
   });
+});
+
+test("skills section renders grouped lists", () => {
+  render(<App />);
+  expect(skills.map((g) => g.area)).toEqual(["Android", "Web", "Backend", "ML"]);
+  const section = within(screen.getByRole("region", { name: "Skills" }));
+  for (const g of skills) {
+    const group = within(section.getByRole("group", { name: g.area }));
+    expect(group.getAllByRole("listitem")).toHaveLength(g.items.length);
+  }
 });
