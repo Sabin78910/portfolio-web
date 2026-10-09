@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { checkHealth, statusLabel, type ApiStatus } from "./status";
+import { loadRepos, type Repo } from "./github";
 import { allTags, contact, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
 export default function App() {
@@ -89,6 +90,8 @@ export default function App() {
         ))}
       </section>
 
+      <GitHubActivity />
+
       <section aria-labelledby="contact-heading">
         <h2 id="contact-heading">Contact</h2>
         <p>
@@ -98,6 +101,39 @@ export default function App() {
         </p>
       </section>
     </main>
+  );
+}
+
+function GitHubActivity() {
+  const [repos, setRepos] = useState<Repo[] | null | undefined>(undefined);
+  useEffect(() => {
+    let active = true;
+    loadRepos(contact.github.split("/").pop() ?? "").then((r) => active && setRepos(r));
+    return () => {
+      active = false;
+    };
+  }, []);
+  return (
+    <section aria-labelledby="activity-heading">
+      <h2 id="activity-heading">GitHub activity</h2>
+      {repos === undefined && <p className="muted">Loading…</p>}
+      {repos === null || (repos && repos.length === 0) ? (
+        <p>
+          <a href={contact.github} target="_blank" rel="noreferrer">See my GitHub profile →</a>
+        </p>
+      ) : (
+        <ul>
+          {repos?.slice(0, 6).map((r) => (
+            <li key={r.name}>
+              <a href={r.url} target="_blank" rel="noreferrer">{r.name}</a>
+              <span className="muted">
+                {" "}— {r.language ?? "n/a"} · ★ {r.stars} · updated {r.updated.slice(0, 10)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

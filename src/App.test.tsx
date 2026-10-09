@@ -134,3 +134,23 @@ test("API cards show live links and health status badges from mocked fetch", asy
   expect(await screen.findByText("Waking up")).toBeInTheDocument();
   vi.unstubAllGlobals();
 });
+
+test("GitHub activity section lists repos from the API", async () => {
+  sessionStorage.clear();
+  const body = [{ name: "demo-repo", html_url: "https://github.com/u/demo-repo", stargazers_count: 5, language: "Kotlin", pushed_at: "2026-01-02T00:00:00Z", fork: false }];
+  const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true, status: 200, json: async () => body } as Response);
+  render(<App />);
+  const section = within(screen.getByRole("region", { name: "GitHub activity" }));
+  expect(await section.findByRole("link", { name: "demo-repo" })).toHaveAttribute("href", "https://github.com/u/demo-repo");
+  expect(section.getByText(/★ 5/)).toBeInTheDocument();
+  spy.mockRestore();
+});
+
+test("GitHub activity falls back to a profile link when the API fails", async () => {
+  sessionStorage.clear();
+  const spy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("offline"));
+  render(<App />);
+  const section = within(screen.getByRole("region", { name: "GitHub activity" }));
+  expect(await section.findByRole("link", { name: /GitHub profile/ })).toHaveAttribute("href", contact.github);
+  spy.mockRestore();
+});
