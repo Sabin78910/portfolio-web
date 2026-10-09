@@ -23,12 +23,23 @@ export default function App() {
 
   return (
     <main>
-      <button onClick={toggleTheme} style={{ float: "right" }}>
-        {theme === "dark" ? "Light theme" : "Dark theme"}
-      </button>
-      <h1>Sabin Khanal</h1>
-      <p className="muted">Android &amp; web developer — Kotlin, React, TypeScript, Python.</p>
-
+      <header className="topbar">
+        <button className="icon-btn" onClick={toggleTheme}>
+          <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          <span className="btn-label">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
+        </button>
+      </header>
+      <section className="hero" aria-label="Introduction">
+        <div className="blob blob-violet" aria-hidden="true" />
+        <div className="blob blob-cyan" aria-hidden="true" />
+        <h1>Sabin Khanal</h1>
+        <p className="tagline">I build Android, web and game apps people love to use</p>
+        <div className="cta">
+          <a className="btn" href="#projects">View projects</a>
+          <a className="btn btn-ghost" href="#contact">Contact</a>
+        </div>
+      </section>
+      <div id="projects">
       {selected ? (
         <CaseStudy project={selected} onBack={() => setSelected(null)} />
       ) : (
@@ -42,7 +53,7 @@ export default function App() {
         style={{ marginBottom: 16 }}
       />
 
-      <div className="row" style={{ flexWrap: "wrap", marginBottom: 16 }}>
+      <div className="chips">
         <button onClick={() => setTag(null)} aria-pressed={tag === null}>All</button>
         {allTags(projects).map((t) => (
           <button key={t} onClick={() => setTag(t)} aria-pressed={tag === t}>{t}</button>
@@ -76,6 +87,8 @@ export default function App() {
         </>
       )}
 
+      </div>
+
       <section aria-labelledby="skills-heading">
         <h2 id="skills-heading">Skills</h2>
         {skills.map((g) => (
@@ -92,7 +105,7 @@ export default function App() {
 
       <GitHubActivity />
 
-      <section aria-labelledby="contact-heading">
+      <section id="contact" aria-labelledby="contact-heading">
         <h2 id="contact-heading">Contact</h2>
         <p>
           <a href={`mailto:${contact.email}`}>Email</a>

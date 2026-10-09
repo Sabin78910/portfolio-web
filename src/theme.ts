@@ -20,5 +20,5 @@ export function saveTheme(theme: Theme): void {
 }
 
 export function systemTheme(): Theme {
-  return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }

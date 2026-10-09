@@ -154,3 +154,35 @@ test("GitHub activity falls back to a profile link when the API fails", async ()
   expect(await section.findByRole("link", { name: /GitHub profile/ })).toHaveAttribute("href", contact.github);
   spy.mockRestore();
 });
+
+describe("redesign hero", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.removeAttribute("data-theme");
+  });
+
+  test("hero shows headline, tagline and CTA links", () => {
+    render(<App />);
+    expect(screen.getByRole("heading", { level: 1, name: "Sabin Khanal" })).toBeInTheDocument();
+    expect(screen.getByText("I build Android, web and game apps people love to use")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View projects" })).toHaveAttribute("href", "#projects");
+    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "#contact");
+  });
+
+  test("defaults to dark theme when nothing saved", () => {
+    render(<App />);
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("theme button has an accessible name and visible label span for icon mode", () => {
+    render(<App />);
+    const btn = screen.getByRole("button", { name: /light theme/i });
+    expect(btn.querySelector(".btn-label")).not.toBeNull();
+    expect(btn.querySelector("[aria-hidden='true']")).not.toBeNull();
+  });
+
+  test("filter chips live in a scrollable container", () => {
+    render(<App />);
+    expect(screen.getByRole("button", { name: "All" }).parentElement).toHaveClass("chips");
+  });
+});
