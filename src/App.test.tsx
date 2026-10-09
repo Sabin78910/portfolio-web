@@ -188,18 +188,44 @@ describe("redesign hero", () => {
 });
 
 describe("bento project grid", () => {
-  test("Block Drop is the featured tile with a lazy, sized store image", () => {
+  test("Block Drop is the featured tile", () => {
     render(<App />);
-    const featured = projects.filter((p) => p.featured);
-    expect(featured.map((p) => p.name)).toEqual(["Block Drop"]);
-    const tile = screen.getByRole("article", { name: "Block Drop" });
-    expect(tile).toHaveClass("tile", "tile-featured");
-    const img = within(tile).getByRole("img", { name: /block drop/i });
-    expect(img).toHaveAttribute("src", "./blockdrop-feature.jpg");
-    expect(img.getAttribute("src")).not.toMatch(/^\/[^/]/);
+    expect(projects.filter((p) => p.featured).map((p) => p.name)).toEqual(["Block Drop"]);
+    expect(screen.getByRole("article", { name: "Block Drop" })).toHaveClass("tile", "tile-featured");
+  });
+
+  const shots: Record<string, [string, "desktop" | "phone"]> = {
+    Todo: ["todo.jpg", "desktop"],
+    "Weather Dashboard": ["weather-dashboard.jpg", "desktop"],
+    "Loan Calculator": ["loan-calculator.jpg", "desktop"],
+    "Expense Tracker": ["expense-android.jpg", "phone"],
+    "EMI Calculator": ["emi-android.jpg", "phone"],
+    "Block Drop": ["blockdrop-gameplay.jpg", "phone"],
+  };
+
+  test.each(Object.entries(shots))("%s tile shows its screenshot in the right frame", (name, [file, kind]) => {
+    render(<App />);
+    const tile = screen.getByRole("article", { name });
+    const img = within(tile).getByRole("img");
+    expect(img).toHaveAttribute("src", `./shots/${file}`);
+    expect(img.getAttribute("alt")).toMatch(new RegExp(name, "i"));
     expect(img).toHaveAttribute("loading", "lazy");
-    expect(img).toHaveAttribute("width", "1024");
-    expect(img).toHaveAttribute("height", "500");
+    expect(img).toHaveAttribute("width");
+    expect(img).toHaveAttribute("height");
+    expect(img.closest(".frame")).toHaveClass(`frame-${kind}`);
+  });
+
+  test.each(Object.entries(shots))("%s case study shows its screenshot", async (name, [file]) => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: `Read case study: ${name}` }));
+    const img = within(screen.getByRole("region", { name })).getByRole("img");
+    expect(img).toHaveAttribute("src", `./shots/${file}`);
+  });
+
+  test("projects without a shot keep the gradient tile", () => {
+    render(<App />);
+    const tile = screen.getByRole("article", { name: "Notes" });
+    expect(within(tile).queryByRole("img")).toBeNull();
   });
 
   test("other tiles have a category icon, gradient class, status pill and tags", () => {

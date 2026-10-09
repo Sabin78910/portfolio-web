@@ -50,7 +50,13 @@ main { max-width: 1040px; }
 .tile { position: relative; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid var(--border); background: var(--card); transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .tile:hover, .tile:focus-within { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35); }
 .tile-featured { grid-column: 1 / -1; }
-.tile-image { display: block; width: 100%; height: auto; aspect-ratio: 1024 / 500; object-fit: cover; }
+.frame { margin: 0 auto; overflow: hidden; background: var(--card); border: 1px solid var(--border); }
+.frame img { display: block; width: 100%; height: auto; }
+.frame-desktop { width: 100%; border-radius: 10px 10px 0 0; border-width: 0 0 1px; }
+.frame-bar { display: flex; gap: 6px; padding: 8px 10px; background: var(--border); }
+.frame-bar span { width: 9px; height: 9px; border-radius: 50%; background: #8888; }
+.frame-phone { width: 180px; max-width: 70%; margin: 16px auto 0; border: 6px solid #111; border-radius: 24px; }
+.tile-featured .frame-phone { width: 200px; }
 .tile-body { padding: 16px; }
 .tile h2 { margin: 12px 0 6px; }
 .tile-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
