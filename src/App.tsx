@@ -1,13 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { allTags, contact, filterByQuery, filterByTag, projects } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme());
   const shown = filterByQuery(filterByTag(projects, tag), query);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    saveTheme(next);
+  };
 
   return (
     <main>
+      <button onClick={toggleTheme} style={{ float: "right" }}>
+        {theme === "dark" ? "Light theme" : "Dark theme"}
+      </button>
       <h1>Sabin Khanal</h1>
       <p className="muted">Android &amp; web developer — Kotlin, React, TypeScript, Python.</p>
 

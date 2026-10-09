@@ -42,3 +42,38 @@ test("search box filters projects and combines with tag filter", async () => {
   await userEvent.type(box, "zzz");
   expect(screen.queryAllByRole("article")).toHaveLength(0);
 });
+
+describe("theme toggle", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.removeAttribute("data-theme");
+  });
+
+  test("toggle changes data-theme on <html> and persists it", async () => {
+    render(<App />);
+    const btn = screen.getByRole("button", { name: /theme/i });
+    await userEvent.click(btn);
+    const first = document.documentElement.getAttribute("data-theme");
+    expect(["dark", "light"]).toContain(first);
+    expect(localStorage.getItem("theme")).toBe(first);
+    await userEvent.click(btn);
+    const second = document.documentElement.getAttribute("data-theme");
+    expect(second).not.toBe(first);
+    expect(localStorage.getItem("theme")).toBe(second);
+  });
+
+  test("restores saved theme", () => {
+    localStorage.setItem("theme", "dark");
+    render(<App />);
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("works when localStorage throws", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("denied"); });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("denied"); });
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /theme/i }));
+    expect(document.documentElement.getAttribute("data-theme")).toBeTruthy();
+    vi.restoreAllMocks();
+  });
+});
