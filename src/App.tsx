@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { checkHealth, statusLabel, type ApiStatus } from "./status";
 import { loadRepos, type Repo } from "./github";
-import { allTags, categoryIcons, categoryOf, contact, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
+import { allTags, categoryIcons, categoryOf, computeStats, contact, techStack, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
@@ -39,6 +39,7 @@ export default function App() {
           <a className="btn btn-ghost" href="#contact">Contact</a>
         </div>
       </section>
+      <Stats />
       <div id="projects">
       {selected ? (
         <CaseStudy project={selected} onBack={() => setSelected(null)} />
@@ -70,6 +71,8 @@ export default function App() {
 
       </div>
 
+      <Marquee />
+
       <section aria-labelledby="skills-heading">
         <h2 id="skills-heading">Skills</h2>
         {skills.map((g) => (
@@ -86,15 +89,53 @@ export default function App() {
 
       <GitHubActivity />
 
-      <section id="contact" aria-labelledby="contact-heading">
+      <section id="contact" aria-labelledby="contact-heading" className="card contact-card">
         <h2 id="contact-heading">Contact</h2>
-        <p>
-          <a href={`mailto:${contact.email}`}>Email</a>
-          {" · "}
-          <a href={contact.github} target="_blank" rel="noreferrer">GitHub</a>
-        </p>
+        <p>Have a project or role in mind? Let's talk.</p>
+        <div className="cta">
+          <a className="btn" href={`mailto:${contact.email}`}>Email</a>
+          <a className="btn btn-ghost-theme" href={contact.github} target="_blank" rel="noreferrer">GitHub</a>
+        </div>
       </section>
+      <footer className="footer">© {new Date().getFullYear()} Sabin Khanal · Built with React &amp; Vite</footer>
     </main>
+  );
+}
+
+function Stats() {
+  const s = computeStats(projects);
+  const items = [
+    [`${s.apps}+`, "Apps built"],
+    [String(s.apis), "Live APIs"],
+    [String(s.tested), "Projects with automated tests"],
+  ];
+  return (
+    <section className="stats" aria-label="Stats">
+      {items.map(([n, l]) => (
+        <div className="stat" key={l}>
+          <strong>{n}</strong>
+          <span>{l}</span>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function Marquee() {
+  const stack = techStack(projects);
+  return (
+    <section className="marquee" aria-label="Tech stack">
+      <ul className="marquee-track">
+        {stack.map((t) => (
+          <li className="pill" key={t}>{t}</li>
+        ))}
+      </ul>
+      <ul className="marquee-track" aria-hidden="true">
+        {stack.map((t) => (
+          <li className="pill" key={t}>{t}</li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

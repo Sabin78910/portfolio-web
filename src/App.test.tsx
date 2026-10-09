@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
-import { allTags, contact, filterByQuery, filterByTag, projects, skills } from "./data";
+import { allTags, computeStats, contact, filterByQuery, filterByTag, projects, skills, techStack } from "./data";
 
 test("filters projects by tag", () => {
   expect(filterByTag(projects, "Android")).toHaveLength(3);
@@ -215,5 +215,39 @@ describe("bento project grid", () => {
   test("grid container exists", () => {
     render(<App />);
     expect(screen.getByRole("article", { name: "Notes" }).parentElement).toHaveClass("bento");
+  });
+});
+
+describe("stats, tech stack and footer", () => {
+  test("computeStats derives numbers from projects", () => {
+    expect(computeStats(projects)).toEqual({ apps: 10, apis: 2, tested: 3 });
+  });
+
+  test("techStack is a unique, sorted union of project stacks", () => {
+    const t = techStack(projects);
+    expect(t).toContain("Kotlin");
+    expect(new Set(t).size).toBe(t.length);
+    expect(t).toEqual([...t].sort());
+  });
+
+  test("stats row renders", () => {
+    render(<App />);
+    const row = within(screen.getByRole("region", { name: "Stats" }));
+    expect(row.getByText("10+")).toBeInTheDocument();
+    expect(row.getByText("Live APIs")).toBeInTheDocument();
+    expect(row.getByText("Projects with automated tests")).toBeInTheDocument();
+  });
+
+  test("marquee lists tech pills and is hidden duplicate for assistive tech", () => {
+    render(<App />);
+    const m = screen.getByLabelText("Tech stack");
+    expect(within(m).getAllByText("Kotlin")).toHaveLength(2);
+    expect(m.querySelector('[aria-hidden="true"]')).not.toBeNull();
+  });
+
+  test("contact card has buttons and footer renders", () => {
+    render(<App />);
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("Sabin Khanal");
+    expect(within(screen.getByRole("region", { name: "Contact" })).getAllByRole("link")[0]).toHaveClass("btn");
   });
 });
