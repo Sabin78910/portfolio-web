@@ -188,11 +188,23 @@ function StatusBadge({ api }: { api: string }) {
   );
 }
 
+function Shot({ image }: { image: NonNullable<Project["image"]> }) {
+  return (
+    <div className={`frame frame-${image.kind}`}>
+      {image.kind === "desktop" && (
+        <div className="frame-bar" aria-hidden="true"><span /><span /><span /></div>
+      )}
+      <img src={image.src} alt={image.alt} width={image.width} height={image.height} loading="lazy" />
+    </div>
+  );
+}
+
 function CaseStudy({ project: p, onBack }: { project: Project; onBack: () => void }) {
   return (
     <section aria-label={p.name} className="card">
       <button onClick={onBack}>← Back to projects</button>
       <h2>{p.name}</h2>
+      {p.image && <Shot image={p.image} />}
       <h3>Problem</h3>
       <p>{p.problem}</p>
       <h3>Approach</h3>
@@ -222,16 +234,7 @@ function ProjectTile({ p, onOpen }: { p: Project; onOpen: () => void }) {
       data-category={category}
       aria-labelledby={`tile-${p.name.replace(/\s+/g, "-")}`}
     >
-      {p.image && (
-        <img
-          className="tile-image"
-          src={p.image.src}
-          alt={p.image.alt}
-          width={p.image.width}
-          height={p.image.height}
-          loading="lazy"
-        />
-      )}
+      {p.image && <Shot image={p.image} />}
       <div className="tile-body">
         <div className="tile-head">
           <span className="tile-icon" aria-hidden="true">{categoryIcons[category] ?? "✨"}</span>
