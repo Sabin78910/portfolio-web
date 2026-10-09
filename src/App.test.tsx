@@ -87,3 +87,36 @@ test("skills section renders grouped lists", () => {
     expect(group.getAllByRole("listitem")).toHaveLength(g.items.length);
   }
 });
+
+describe("project case studies", () => {
+  test("every project has case study content", () => {
+    for (const p of projects) {
+      expect(p.problem.length).toBeGreaterThan(0);
+      expect(p.approach.length).toBeGreaterThan(0);
+      expect(p.results.length).toBeGreaterThan(0);
+      expect(p.stack.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("opening a project shows its detail view and back returns to the list", async () => {
+    render(<App />);
+    const p = projects.find((x) => x.name === "Weather Dashboard")!;
+    await userEvent.click(screen.getByRole("button", { name: `Read case study: ${p.name}` }));
+    expect(screen.queryAllByRole("article")).toHaveLength(0);
+    const detail = within(screen.getByRole("region", { name: p.name }));
+    expect(detail.getByText(p.problem)).toBeInTheDocument();
+    expect(detail.getByText(p.approach)).toBeInTheDocument();
+    expect(detail.getByText(p.results)).toBeInTheDocument();
+    expect(detail.getByText(p.stack.join(", "))).toBeInTheDocument();
+    expect(detail.getByRole("link", { name: /repo/i })).toHaveAttribute("href", p.repo);
+    expect(detail.getByRole("link", { name: /live/i })).toHaveAttribute("href", p.live);
+    await userEvent.click(screen.getByRole("button", { name: /back/i }));
+    expect(screen.getAllByRole("article")).toHaveLength(projects.length);
+  });
+
+  test("live link is omitted when a project has none", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Read case study: Notes" }));
+    expect(screen.queryByRole("link", { name: /live/i })).toBeNull();
+  });
+});
