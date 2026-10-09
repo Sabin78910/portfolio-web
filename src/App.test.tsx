@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
-import { allTags, contact, filterByQuery, filterByTag, projects } from "./data";
+import { allTags, contact, filterByQuery, filterByTag, projects, skills } from "./data";
 
 test("filters projects by tag", () => {
   expect(filterByTag(projects, "Android")).toHaveLength(3);
@@ -41,4 +41,14 @@ test("search box filters projects and combines with tag filter", async () => {
   await userEvent.clear(box);
   await userEvent.type(box, "zzz");
   expect(screen.queryAllByRole("article")).toHaveLength(0);
+});
+
+test("skills section renders grouped lists", () => {
+  render(<App />);
+  expect(skills.map((g) => g.group)).toEqual(["Android", "Web", "Backend", "ML"]);
+  const section = within(screen.getByRole("region", { name: "Skills" }));
+  for (const g of skills) {
+    const list = within(section.getByRole("list", { name: g.group }));
+    expect(list.getAllByRole("listitem")).toHaveLength(g.items.length);
+  }
 });

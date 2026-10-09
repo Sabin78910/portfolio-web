@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { allTags, contact, filterByQuery, filterByTag, projects } from "./data";
+import { allTags, contact, filterByQuery, filterByTag, projects, skills } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
@@ -35,6 +35,18 @@ export default function App() {
           <a href={p.repo} target="_blank" rel="noreferrer">View code →</a>
         </article>
       ))}
+
+      <section aria-labelledby="skills-heading">
+        <h2 id="skills-heading">Skills</h2>
+        {skills.map((g) => (
+          <div key={g.group}>
+            <h3 id={`skills-${g.group}`}>{g.group}</h3>
+            <ul aria-labelledby={`skills-${g.group}`}>
+              {g.items.map((i) => <li key={i}>{i}</li>)}
+            </ul>
+          </div>
+        ))}
+      </section>
 
       <section aria-labelledby="contact-heading">
         <h2 id="contact-heading">Contact</h2>

@@ -38,3 +38,10 @@ export const contact = {
   email: "sabinkhanal13@gmail.com",
   github: "https://github.com/Sabin78910",
 };
+
+export const skills: { group: string; items: string[] }[] = [
+  { group: "Android", items: ["Kotlin", "Jetpack Compose", "Room", "Coroutines"] },
+  { group: "Web", items: ["React", "TypeScript", "Vite", "CSS"] },
+  { group: "Backend", items: ["Python", "FastAPI", "REST APIs", "SQL"] },
+  { group: "ML", items: ["scikit-learn", "pandas", "NumPy"] },
+];
