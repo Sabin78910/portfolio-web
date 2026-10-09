@@ -120,3 +120,17 @@ describe("project case studies", () => {
     expect(screen.queryByRole("link", { name: /live/i })).toBeNull();
   });
 });
+
+test("API cards show live links and health status badges from mocked fetch", async () => {
+  const f = vi.fn((url: string) =>
+    Promise.resolve(url.includes("inventory") ? { ok: true, status: 200 } : { ok: false, status: 503 }),
+  );
+  vi.stubGlobal("fetch", f);
+  render(<App />);
+  expect(screen.getByRole("link", { name: "Live API: Inventory API" })).toHaveAttribute("href", "https://inventory-api-tagg.onrender.com");
+  expect(screen.getByRole("link", { name: "Live API: Bookstore API" })).toHaveAttribute("href", "https://bookstore-api-lhpl.onrender.com");
+  expect(screen.getAllByRole("link", { name: /^Live demo:/ })).toHaveLength(3);
+  expect(await screen.findByText("Live")).toBeInTheDocument();
+  expect(await screen.findByText("Waking up")).toBeInTheDocument();
+  vi.unstubAllGlobals();
+});

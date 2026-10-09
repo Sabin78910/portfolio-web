@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
+import { checkHealth, statusLabel, type ApiStatus } from "./status";
 import { allTags, contact, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
 export default function App() {
@@ -55,6 +56,20 @@ export default function App() {
           <button onClick={() => setSelected(p)} aria-label={`Read case study: ${p.name}`}>Case study →</button>
           {" "}
           <a href={p.repo} target="_blank" rel="noreferrer">View code →</a>
+          {p.live && (
+            <>
+              {" "}
+              <a href={p.live} target="_blank" rel="noreferrer" aria-label={`Live demo: ${p.name}`}>Live demo →</a>
+            </>
+          )}
+          {p.api && (
+            <>
+              {" "}
+              <a href={p.api} target="_blank" rel="noreferrer" aria-label={`Live API: ${p.name}`}>Live API →</a>
+              {" "}
+              <StatusBadge api={p.api} />
+            </>
+          )}
         </article>
       ))}
         </>
@@ -83,6 +98,22 @@ export default function App() {
         </p>
       </section>
     </main>
+  );
+}
+
+function StatusBadge({ api }: { api: string }) {
+  const [status, setStatus] = useState<ApiStatus | null>(null);
+  useEffect(() => {
+    let active = true;
+    checkHealth(api).then((s) => active && setStatus(s));
+    return () => {
+      active = false;
+    };
+  }, [api]);
+  return (
+    <span className="muted" role="status" data-status={status ?? "checking"}>
+      {status ? statusLabel[status] : "Checking…"}
+    </span>
   );
 }
 
