@@ -1,14 +1,24 @@
 import { useState } from "react";
-import { allTags, contact, filterByTag, projects } from "./data";
+import { allTags, contact, filterByQuery, filterByTag, projects } from "./data";
 
 export default function App() {
   const [tag, setTag] = useState<string | null>(null);
-  const shown = filterByTag(projects, tag);
+  const [query, setQuery] = useState("");
+  const shown = filterByQuery(filterByTag(projects, tag), query);
 
   return (
     <main>
       <h1>Sabin Khanal</h1>
       <p className="muted">Android &amp; web developer — Kotlin, React, TypeScript, Python.</p>
+
+      <input
+        type="search"
+        aria-label="Search projects"
+        placeholder="Search projects…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        style={{ marginBottom: 16 }}
+      />
 
       <div className="row" style={{ flexWrap: "wrap", marginBottom: 16 }}>
         <button onClick={() => setTag(null)} aria-pressed={tag === null}>All</button>

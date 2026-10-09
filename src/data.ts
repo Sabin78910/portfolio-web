@@ -27,6 +27,13 @@ export function filterByTag(list: Project[], tag: string | null): Project[] {
   return tag ? list.filter((p) => p.tags.includes(tag)) : list;
 }
 
+export function filterByQuery(list: Project[], query: string): Project[] {
+  const q = query.trim().toLowerCase();
+  return q
+    ? list.filter((p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
+    : list;
+}
+
 export const contact = {
   email: "sabinkhanal13@gmail.com",
   github: "https://github.com/Sabin78910",
