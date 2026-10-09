@@ -24,3 +24,14 @@ test("timeout means waking up", async () => {
   const f = vi.fn().mockRejectedValue(new DOMException("aborted", "AbortError"));
   expect(await checkHealth("https://x.test", f)).toBe("waking");
 });
+
+test("requests /health with no-cors so cross-origin APIs don't log CORS errors", async () => {
+  const f = vi.fn().mockResolvedValue(res(200));
+  await checkHealth("https://x.test", f);
+  expect(f.mock.calls[0][1].mode).toBe("no-cors");
+});
+
+test("opaque (no-cors) response means the server answered: live", async () => {
+  const opaque = { ok: false, status: 0, type: "opaque" } as Response;
+  expect(await checkHealth("https://x.test", vi.fn().mockResolvedValue(opaque))).toBe("live");
+});
