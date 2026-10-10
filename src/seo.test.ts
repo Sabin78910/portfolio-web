@@ -1,6 +1,7 @@
 import html from "../index.html?raw";
 import robots from "../public/robots.txt?raw";
 import sitemap from "../public/sitemap.xml?raw";
+import ogImage from "../public/og-image.png?inline";
 
 const SITE = "https://sabin78910.github.io/portfolio-web/";
 const doc = new DOMParser().parseFromString(html, "text/html");
@@ -14,8 +15,23 @@ describe("SEO", () => {
       expect(meta(`meta[property="${p}"]`), p).toBeTruthy();
     }
     expect(meta('meta[property="og:image"]')).toMatch(/^https:\/\/.+\.png$/);
-    expect(meta('meta[name="twitter:card"]')).toBe("summary");
     expect(meta('meta[name="twitter:image"]')).toMatch(/^https:\/\/.+\.png$/);
+  });
+
+  it("uses a 1200x630 social image with a large-image card", () => {
+    const url = `${SITE}og-image.png`;
+    expect(meta('meta[property="og:image"]')).toBe(url);
+    expect(meta('meta[name="twitter:image"]')).toBe(url);
+    expect(meta('meta[name="twitter:card"]')).toBe("summary_large_image");
+    expect(meta('meta[property="og:image:width"]')).toBe("1200");
+    expect(meta('meta[property="og:image:height"]')).toBe("630");
+    expect(meta('meta[property="og:image:alt"]')).toBeTruthy();
+
+    const png = Uint8Array.from(atob(ogImage.split(",")[1]), (c) => c.charCodeAt(0));
+    const view = new DataView(png.buffer);
+    expect(png.length).toBeLessThan(300 * 1024);
+    expect(view.getUint32(16)).toBe(1200);
+    expect(view.getUint32(20)).toBe(630);
   });
 
   it("has JSON-LD Person", () => {
