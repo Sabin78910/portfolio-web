@@ -149,8 +149,12 @@ function Stats() {
 
 function Marquee() {
   const stack = techStack(projects);
+  const [paused, setPaused] = useState(false);
   return (
-    <section className="marquee" aria-label="Tech stack">
+    <section className="marquee" aria-label="Tech stack" data-paused={paused ? "true" : undefined}>
+      <button type="button" className="marquee-toggle" aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
+        {paused ? "Play animation" : "Pause animation"}
+      </button>
       <ul className="marquee-track">
         {stack.map((t) => (
           <li className="pill" key={t}>{t}</li>
