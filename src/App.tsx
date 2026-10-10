@@ -57,6 +57,7 @@ export default function App() {
         <div className="cta">
           <a className="btn" href="#projects">View projects</a>
           <a className="btn btn-ghost" href="#contact">Contact</a>
+          <button type="button" className="btn btn-ghost-theme print-btn" onClick={() => window.print()}>Save as PDF</button>
         </div>
       </section>
       <Stats />

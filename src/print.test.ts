@@ -11,7 +11,7 @@ describe("print stylesheet", () => {
   it("hides interactive and decorative elements", () => {
     const m = block.match(/([^{}]+)\{\s*display:\s*none\s*!important/);
     expect(m).toBeTruthy();
-    for (const sel of [".topbar", ".search", ".chips", ".blob", ".marquee"]) {
+    for (const sel of [".topbar", ".search", ".chips", ".blob", ".marquee", ".print-btn"]) {
       expect(m![1], sel).toContain(sel);
     }
   });

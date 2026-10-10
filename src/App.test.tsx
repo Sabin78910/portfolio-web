@@ -375,3 +375,14 @@ describe("URL filters", () => {
     expect(window.location.search).toBe("");
   });
 });
+
+describe("Save as PDF", () => {
+  it("renders a button that calls window.print", async () => {
+    const print = vi.fn();
+    vi.stubGlobal("print", print);
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Save as PDF" }));
+    expect(print).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+});
