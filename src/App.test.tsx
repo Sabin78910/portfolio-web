@@ -278,3 +278,16 @@ describe("stats, tech stack and footer", () => {
     expect(within(screen.getByRole("region", { name: "Contact" })).getAllByRole("link")[0]).toHaveClass("btn");
   });
 });
+
+test("skip link is the first tab stop, targets #main and focuses main", async () => {
+  render(<App />);
+  const link = screen.getByRole("link", { name: "Skip to main content" });
+  expect(link).toHaveAttribute("href", "#main");
+  await userEvent.tab();
+  expect(link).toHaveFocus();
+  const main = screen.getByRole("main");
+  expect(main).toHaveAttribute("id", "main");
+  expect(main).toHaveAttribute("tabindex", "-1");
+  await userEvent.click(link);
+  expect(main).toHaveFocus();
+});

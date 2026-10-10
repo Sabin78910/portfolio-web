@@ -85,3 +85,7 @@ main { max-width: 1040px; }
 .btn-ghost-theme { background: transparent; border: 1px solid var(--accent); color: var(--accent) !important; }
 :root[data-theme="dark"] .btn-ghost-theme { border-color: var(--cyan); color: var(--cyan) !important; }
 .footer { text-align: center; color: var(--muted); font-size: 14px; padding: 16px 0; }
+
+.skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; padding: 8px 16px; background: var(--violet); color: #fff; }
+.skip-link:focus { left: 8px; top: 8px; }
+main:focus { outline: none; }
