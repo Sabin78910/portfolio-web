@@ -1,4 +1,4 @@
-Contact: mailto:sabinkhanal13@gmail.com
+Contact: https://github.com/Sabin78910/portfolio-web/issues/new
 Expires: 2027-09-30T00:00:00Z
 Preferred-Languages: en
 Canonical: https://sabin78910.github.io/portfolio-web/.well-known/security.txt
