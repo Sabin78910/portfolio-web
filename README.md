@@ -24,3 +24,6 @@ npm run build
 | Deploy to GitHub Pages | push to main | publishes the site |
 | CodeQL | push / PR / weekly | security analysis |
 | Dependabot | weekly | dependency update PRs |
+
+## Security
+Vulnerability reports: see `public/.well-known/security.txt` (RFC 9116). Renew its `Expires` date yearly.
