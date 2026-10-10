@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { checkHealth, statusLabel, type ApiStatus } from "./status";
+import { copyText } from "./clipboard";
 import { loadRepos, type Repo } from "./github";
 import { allTags, categoryIcons, categoryOf, computeStats, contact, techStack, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
@@ -97,11 +98,32 @@ export default function App() {
         <p>Have a project or role in mind? Let's talk.</p>
         <div className="cta">
           <a className="btn" href={`mailto:${contact.email}`}>Email</a>
+          <CopyEmail />
           <a className="btn btn-ghost-theme" href={contact.github} target="_blank" rel="noreferrer">GitHub</a>
         </div>
       </section>
       <footer className="footer">© {new Date().getFullYear()} Sabin Khanal · Built with React &amp; Vite</footer>
     </main>
+    </>
+  );
+}
+
+function CopyEmail() {
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (!message) return;
+    const id = setTimeout(() => setMessage(""), 4000);
+    return () => clearTimeout(id);
+  }, [message]);
+  const supported = typeof navigator !== "undefined" && !!navigator.clipboard;
+  const onCopy = async () => {
+    const r = await copyText(contact.email);
+    setMessage(r === "ok" ? "Email copied" : "Could not copy email. Please copy it manually.");
+  };
+  return (
+    <>
+      {supported && <button className="btn btn-ghost-theme" onClick={onCopy}>Copy email</button>}
+      <span className="muted" role="status" aria-live="polite">{message}</span>
     </>
   );
 }

@@ -291,3 +291,31 @@ test("skip link is the first tab stop, targets #main and focuses main", async ()
   await userEvent.click(link);
   expect(main).toHaveFocus();
 });
+
+describe("copy email", () => {
+  const setClipboard = (c: unknown) => Object.defineProperty(navigator, "clipboard", { value: c, configurable: true });
+  afterEach(() => setClipboard(undefined));
+
+  test("copies email and announces success in a polite live region", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    setClipboard({ writeText });
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Copy email" }));
+    expect(writeText).toHaveBeenCalledWith(contact.email);
+    const status = await screen.findByText("Email copied");
+    expect(status).toHaveAttribute("aria-live", "polite");
+  });
+
+  test("shows a clear message on failure", async () => {
+    setClipboard({ writeText: vi.fn().mockRejectedValue(new Error("no")) });
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Copy email" }));
+    expect(await screen.findByText(/Could not copy/)).toBeInTheDocument();
+  });
+
+  test("button is not rendered without the Clipboard API", () => {
+    setClipboard(undefined);
+    render(<App />);
+    expect(screen.queryByRole("button", { name: "Copy email" })).not.toBeInTheDocument();
+  });
+});
