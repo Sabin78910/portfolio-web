@@ -349,3 +349,29 @@ describe("copy email", () => {
     expect(screen.queryByRole("button", { name: "Copy email" })).not.toBeInTheDocument();
   });
 });
+
+describe("URL filters", () => {
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  test("loading with ?category= preselects chip and filters tiles", () => {
+    window.history.replaceState(null, "", "/?category=ML");
+    render(<App />);
+    expect(screen.getByRole("button", { name: "ML" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByRole("article")).toHaveLength(1);
+  });
+
+  test("changing filters updates the URL and keeps the hash", async () => {
+    window.history.replaceState(null, "", "/#contact");
+    const before = window.history.length;
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "ML" }));
+    expect(window.location.search).toBe("?category=ML");
+    expect(window.location.hash).toBe("#contact");
+    await userEvent.type(screen.getByRole("searchbox", { name: "Search projects" }), "ab");
+    expect(window.location.search).toBe("?category=ML&q=ab");
+    expect(window.history.length).toBe(before);
+    await userEvent.click(screen.getByRole("button", { name: "All" }));
+    await userEvent.clear(screen.getByRole("searchbox", { name: "Search projects" }));
+    expect(window.location.search).toBe("");
+  });
+});

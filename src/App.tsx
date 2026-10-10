@@ -2,15 +2,32 @@ import { useEffect, useState } from "react";
 import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { checkHealth, statusLabel, type ApiStatus } from "./status";
 import { copyText } from "./clipboard";
+import { parseFilters, serializeFilters } from "./filterUrl";
 import { loadRepos, type Repo } from "./github";
 import { allTags, categoryIcons, categoryOf, computeStats, contact, techStack, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
 
 export default function App() {
-  const [tag, setTag] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  const [initial] = useState(() => parseFilters(window.location.search));
+  const [tag, setTag] = useState<string | null>(initial.tag);
+  const [query, setQuery] = useState(initial.query);
   const [selected, setSelected] = useState<Project | null>(null);
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme());
   const shown = filterByQuery(filterByTag(projects, tag), query);
+
+  useEffect(() => {
+    const { pathname, hash } = window.location;
+    window.history.replaceState(window.history.state, "", `${pathname}${serializeFilters({ tag, query })}${hash}`);
+  }, [tag, query]);
+
+  useEffect(() => {
+    const onPop = () => {
+      const f = parseFilters(window.location.search);
+      setTag(f.tag);
+      setQuery(f.query);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
