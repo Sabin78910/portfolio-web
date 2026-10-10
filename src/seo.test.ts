@@ -56,7 +56,7 @@ describe("security meta", () => {
   it("has a restrictive CSP", () => {
     expect(directive("default-src")).toBe("default-src 'self'");
     expect(csp).not.toContain("unsafe-eval");
-    expect(directive("script-src")).toBe("script-src 'self'");
+    expect(directive("script-src")).toMatch(/^script-src 'self' 'sha256-[A-Za-z0-9+/]+=*'$/);
     expect(directive("object-src")).toBe("object-src 'none'");
     expect(directive("base-uri")).toBe("base-uri 'self'");
     expect(directive("style-src")).toBe("style-src 'self' https://fonts.googleapis.com");
