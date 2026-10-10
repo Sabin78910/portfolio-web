@@ -22,7 +22,9 @@ export default function App() {
   };
 
   return (
-    <main>
+    <>
+    <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to main content</a>
+    <main id="main" tabIndex={-1}>
       <header className="topbar">
         <button className="icon-btn" onClick={toggleTheme}>
           <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
@@ -99,6 +101,7 @@ export default function App() {
       </section>
       <footer className="footer">© {new Date().getFullYear()} Sabin Khanal · Built with React &amp; Vite</footer>
     </main>
+    </>
   );
 }
 
