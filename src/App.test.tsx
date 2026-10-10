@@ -272,6 +272,36 @@ describe("stats, tech stack and footer", () => {
     expect(m.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 
+  test("marquee pause button toggles label, aria-pressed and paused state", async () => {
+    render(<App />);
+    const m = screen.getByLabelText("Tech stack");
+    const btn = within(m).getByRole("button", { name: "Pause animation" });
+    expect(btn).toHaveAttribute("aria-pressed", "false");
+    expect(m).not.toHaveAttribute("data-paused");
+    await userEvent.click(btn);
+    expect(btn).toHaveAccessibleName("Play animation");
+    expect(btn).toHaveAttribute("aria-pressed", "true");
+    expect(m).toHaveAttribute("data-paused", "true");
+    await userEvent.click(btn);
+    expect(btn).toHaveAccessibleName("Pause animation");
+    expect(m).not.toHaveAttribute("data-paused");
+  });
+
+  test("marquee pause button is keyboard operable", async () => {
+    render(<App />);
+    const btn = screen.getByRole("button", { name: "Pause animation" });
+    btn.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(btn).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("reduced motion: animation is off and the pause button is hidden via CSS", async () => {
+    const { default: css } = await import("./index.css?inline");
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)[^\n]*\.marquee-track \{ animation: none; \}/);
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)[^\n]*\.marquee-toggle \{ display: none; \}/);
+    expect(css).toMatch(/\.marquee\[data-paused\] \.marquee-track \{ animation: none; \}/);
+  });
+
   test("contact card has buttons and footer renders", () => {
     render(<App />);
     expect(screen.getByRole("contentinfo")).toHaveTextContent("Sabin Khanal");
