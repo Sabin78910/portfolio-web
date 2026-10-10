@@ -1,5 +1,7 @@
 export type Theme = "light" | "dark";
 
+export const THEME_COLORS: Record<Theme, string> = { dark: "#1e293b", light: "#ffffff" };
+
 const KEY = "theme";
 
 export function loadTheme(): Theme | null {
@@ -20,5 +22,9 @@ export function saveTheme(theme: Theme): void {
 }
 
 export function systemTheme(): Theme {
-  return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  return resolveTheme(null, typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches);
+}
+
+export function resolveTheme(saved: string | null, systemPrefersLight: boolean): Theme {
+  return saved === "light" || saved === "dark" ? saved : systemPrefersLight ? "light" : "dark";
 }

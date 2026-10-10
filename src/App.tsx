@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadTheme, saveTheme, systemTheme, type Theme } from "./theme";
+import { loadTheme, saveTheme, systemTheme, THEME_COLORS, type Theme } from "./theme";
 import { checkHealth, statusLabel, type ApiStatus } from "./status";
 import { copyText } from "./clipboard";
 import { parseFilters, serializeFilters } from "./filterUrl";
@@ -31,6 +31,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);
   }, [theme]);
 
   const toggleTheme = () => {
