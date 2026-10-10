@@ -48,6 +48,7 @@ export default function App() {
       ) : (
         <>
       <input
+        className="search"
         type="search"
         aria-label="Search projects"
         placeholder="Search projects…"

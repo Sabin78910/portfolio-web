@@ -89,3 +89,12 @@ main { max-width: 1040px; }
 .skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; padding: 8px 16px; background: var(--violet); color: #fff; }
 .skip-link:focus { left: 8px; top: 8px; }
 main:focus { outline: none; }
+@media print {
+  .topbar, .search, .chips, .blob, .marquee, .skip-link { display: none !important; }
+  :root, :root[data-theme="dark"], body, .hero, .tile, .card, .stat { --bg: #fff; --fg: #111; --muted: #444; --card: #fff; --border: #ccc; background: #fff !important; background-image: none !important; color: #000; box-shadow: none; }
+  .hero h1, .tagline { color: #000; }
+  .bento { display: block; }
+  .tile, .card, .stat { break-inside: avoid; margin-bottom: 12px; }
+  a { color: #000; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 12px; word-break: break-all; }
+}
