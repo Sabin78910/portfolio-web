@@ -31,3 +31,30 @@ describe("SEO", () => {
     expect(sitemap).toContain(`<loc>${SITE}</loc>`);
   });
 });
+
+describe("security meta", () => {
+  const csp = meta('meta[http-equiv="Content-Security-Policy"]') ?? "";
+  const directive = (name: string) =>
+    csp.split(";").map((d) => d.trim()).find((d) => d.startsWith(`${name} `)) ?? "";
+
+  it("has a restrictive CSP", () => {
+    expect(directive("default-src")).toBe("default-src 'self'");
+    expect(csp).not.toContain("unsafe-eval");
+    expect(directive("script-src")).toBe("script-src 'self'");
+    expect(directive("object-src")).toBe("object-src 'none'");
+    expect(directive("base-uri")).toBe("base-uri 'self'");
+    expect(directive("style-src")).toBe("style-src 'self' https://fonts.googleapis.com");
+    expect(directive("font-src")).toBe("font-src https://fonts.gstatic.com");
+    expect(directive("img-src")).toBe("img-src 'self' data:");
+  });
+
+  it("limits connect-src to hosts the app calls", () => {
+    expect(directive("connect-src")).toBe(
+      "connect-src 'self' https://api.github.com https://inventory-api-tagg.onrender.com https://bookstore-api-lhpl.onrender.com",
+    );
+  });
+
+  it("sets a referrer policy", () => {
+    expect(meta('meta[name="referrer"]')).toBe("strict-origin-when-cross-origin");
+  });
+});
