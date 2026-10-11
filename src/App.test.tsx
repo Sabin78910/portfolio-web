@@ -117,19 +117,20 @@ describe("project case studies", () => {
   test("live link is omitted when a project has none", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "Read case study: Notes" }));
-    expect(screen.queryByRole("link", { name: /live/i })).toBeNull();
+    expect(within(screen.getByRole("region", { name: "Notes" })).queryByRole("link", { name: /live/i })).toBeNull();
   });
 });
 
 test("API cards show live links and health status badges from mocked fetch", async () => {
   const f = vi.fn((url: string) =>
-    Promise.resolve(url.includes("inventory") ? { ok: true, status: 200 } : { ok: false, status: 503 }),
+    Promise.resolve(url.includes("inventory") ? { ok: true, status: 200 } : url.includes("bookstore") ? { ok: false, status: 503 } : { ok: false, status: 404 }),
   );
   vi.stubGlobal("fetch", f);
   render(<App />);
   expect(screen.getByRole("link", { name: "Live API: Inventory API" })).toHaveAttribute("href", "https://inventory-api-tagg.onrender.com");
   expect(screen.getByRole("link", { name: "Live API: Bookstore API" })).toHaveAttribute("href", "https://bookstore-api-lhpl.onrender.com");
-  expect(screen.getAllByRole("link", { name: /^Live demo:/ })).toHaveLength(3);
+  expect(screen.getByRole("link", { name: "Live API: Sync API" })).toHaveAttribute("href", "https://sync-api.sabin-apps.workers.dev/v1/health");
+  expect(screen.getAllByRole("link", { name: /^Live demo:/ })).toHaveLength(projects.filter((p) => p.live).length);
   expect(await screen.findByText("Live")).toBeInTheDocument();
   expect(await screen.findByText("Waking up")).toBeInTheDocument();
   vi.unstubAllGlobals();
@@ -188,16 +189,20 @@ describe("redesign hero", () => {
 });
 
 describe("bento project grid", () => {
-  test("Block Drop is the featured tile", () => {
+  test("the four new apps and Block Drop are the featured tiles", () => {
     render(<App />);
-    expect(projects.filter((p) => p.featured).map((p) => p.name)).toEqual(["Block Drop"]);
+    expect(projects.filter((p) => p.featured).map((p) => p.name)).toEqual(["Ludo Live", "Prism Pop", "NEPSE Lens", "Khabar Pulse", "Block Drop"]);
     expect(screen.getByRole("article", { name: "Block Drop" })).toHaveClass("tile", "tile-featured");
   });
 
   const shots: Record<string, [string, "desktop" | "phone"]> = {
-    Todo: ["todo.jpg", "desktop"],
-    "Weather Dashboard": ["weather-dashboard.jpg", "desktop"],
-    "Loan Calculator": ["loan-calculator.jpg", "desktop"],
+    "Ludo Live": ["ludo-live.webp", "phone"],
+    "Prism Pop": ["prism-pop.webp", "phone"],
+    "Khabar Pulse": ["khabar-pulse.webp", "phone"],
+    "NEPSE Lens": ["nepse-lens.webp", "desktop"],
+    Todo: ["todo.webp", "desktop"],
+    "Weather Dashboard": ["weather-dashboard.webp", "desktop"],
+    "Loan Calculator": ["loan-calculator.webp", "desktop"],
     "Expense Tracker": ["expense-android.jpg", "phone"],
     "EMI Calculator": ["emi-android.jpg", "phone"],
     "Block Drop": ["blockdrop-gameplay.jpg", "phone"],
@@ -247,7 +252,7 @@ describe("bento project grid", () => {
 
 describe("stats, tech stack and footer", () => {
   test("computeStats derives numbers from projects", () => {
-    expect(computeStats(projects)).toEqual({ apps: 10, apis: 2, tested: 3 });
+    expect(computeStats(projects)).toEqual({ apps: 15, apis: 3, tested: 15, tests: projects.reduce((n, p) => n + p.tests, 0) });
   });
 
   test("techStack is a unique, sorted union of project stacks", () => {
@@ -260,7 +265,7 @@ describe("stats, tech stack and footer", () => {
   test("stats row renders", () => {
     render(<App />);
     const row = within(screen.getByRole("region", { name: "Stats" }));
-    expect(row.getByText("10+")).toBeInTheDocument();
+    expect(row.getByText(`${projects.length}+`)).toBeInTheDocument();
     expect(row.getByText("Live APIs")).toBeInTheDocument();
     expect(row.getByText("Projects with automated tests")).toBeInTheDocument();
   });
