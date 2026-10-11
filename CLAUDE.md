@@ -1,22 +1,36 @@
 # Portfolio
-Purpose: Personal developer portfolio site (React, TS, Vite).
+Sabin Khanal's developer portfolio: work grid, case studies, live product status.
+
+## Stack
+React 19 · TypeScript (strict) · Vite · Vitest · ESLint. Installable PWA with offline support.
+Design: #07070C base, violet #7C3AED and cyan #22D3EE, Space Grotesk + Inter. Shared with sabin-labs.
 
 ## Commands
-- Test: `npm test`
-- Lint: `npm run lint && npm run typecheck`
-- Build: `npm run build`
+- Dev: `npm run dev` · Build: `npm run build`
+- Test: `npm test` · Lint: `npm run lint && npm run typecheck`
 
 ## Architecture
-src/ — pure logic in *.ts modules with tests; UI in components (App.tsx)
+- `src/data.ts` is the single source of truth for projects · `src/hero/` WebGL particle range
+- `src/components/` Work, Systems, ContactForm · `src/status.ts` live health checks
 
-## Rules
-- Read only the files you need; do not scan the whole repo.
-- Every behavior change needs a test. Run tests and lint before finishing.
-- No new dependencies, permissions, or signing/secrets changes without asking.
-- Never commit secrets, keystores, .env files.
-- Keep PRs under ~300 changed lines; one issue per PR.
-- Be concise: diffs plus a 3-line summary.
-- If tests still fail after 3 attempts, stop and report the blocker.
+## Data rules
+- Project data is static in `src/data.ts`; add new products there.
+- Test counts are recorded manually and go stale; update them when you touch them.
 
-## Definition of done
-Lint clean, tests pass, CI green, short summary, PR opened as draft.
+## Testing rules
+- Every behaviour change needs a test. Pure logic in `src/*.ts` is unit-tested; components get the
+  behaviour test, not the markup. Run lint, typecheck and tests before finishing.
+
+## Frontend rules
+- Keep the existing design system, dark-first with a working light theme. Editorial layouts, not dashboard
+  grids. Respect `prefers-reduced-motion`, keep AA contrast and 44px targets.
+- Self-host fonts with @fontsource; a Google Fonts link blocks first paint and costs ~2s on mobile.
+- Keep gzipped JS under ~180KB and Lighthouse mobile performance at 90+.
+
+## Security and git
+- Never commit secrets, keystores, .env files or email addresses.
+- Keep the Content-Security-Policy strict; add a host to connect-src only when a feature needs it.
+- `main` is protected: branch, open a PR, merge when CI is green. One issue per PR, under ~300 lines.
+
+## Done when
+Lint clean, tests pass, CI green, PR opened with a three line summary.
