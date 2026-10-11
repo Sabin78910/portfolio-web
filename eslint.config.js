@@ -20,4 +20,8 @@ export default tseslint.config(
     files: [".github/scripts/**/*.mjs"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
+  {
+    files: ["public/sw.js"],
+    languageOptions: { globals: globals.serviceworker },
+  },
 );
