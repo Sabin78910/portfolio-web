@@ -8,7 +8,7 @@ uniform float uTime, uAspect, uScroll, uAmp, uDpr;
 uniform vec2 uMouse;
 varying float vH, vA, vLift;
 const float EYE = 2.6;
-const float CAM = 0.95;
+const float CAM = 0.8;
 const float F = 2.25;
 vec2 proj(vec3 p) {
   float d = p.z + EYE;
@@ -16,6 +16,7 @@ vec2 proj(vec3 p) {
 }
 void main() {
   vec3 p = aPos;
+  p.y *= 1.8;
   float zn = p.z / 4.0;
   p.y += sin(uTime * 0.5 + aSeed * 6.2831 + p.x * 1.5) * 0.012;
   p.y -= uScroll * 0.6 * (1.0 - zn);
@@ -28,11 +29,11 @@ void main() {
   q = proj(p);
   gl_Position = vec4(q, 0.0, 1.0);
   float depth = p.z + EYE;
-  gl_PointSize = (1.6 + lift * 5.0) * uDpr * (3.4 / depth);
+  gl_PointSize = (2.4 + lift * 5.0) * uDpr * (3.4 / depth);
   vH = clamp(aPos.y / 1.25, 0.0, 1.0);
   vLift = lift;
-  float edge = smoothstep(1.0, 0.82, abs(aPos.x) / (2.6 + 4.2 * zn));
-  vA = mix(1.0, 0.38, zn) * edge * (0.78 + 0.22 * sin(uTime * 1.4 + aSeed * 40.0)) * (1.0 - uScroll * 0.85);
+  float edge = 1.0 - smoothstep(0.82, 1.0, abs(aPos.x) / (2.6 + 4.2 * zn));
+  vA = mix(1.0, 0.45, zn) * edge * (0.78 + 0.22 * sin(uTime * 1.4 + aSeed * 40.0)) * (1.0 - uScroll * 0.85);
 }`;
 
 const FS = `
@@ -47,13 +48,14 @@ void main() {
   vec3 hi = mix(vec3(0.96, 0.97, 1.0), vec3(0.08, 0.1, 0.2), uLight);
   vec3 c = vH < 0.45 ? mix(lo, mid, vH / 0.45) : mix(mid, hi, (vH - 0.45) / 0.55);
   c = mix(c, hi, vLift * 0.6);
-  gl_FragColor = vec4(c, smoothstep(0.5, 0.1, r) * vA * (0.85 + vLift));
+  float a = clamp((1.0 - smoothstep(0.18, 0.5, r)) * vA * (0.85 + vLift), 0.0, 1.0);
+  gl_FragColor = vec4(c * a, a);
 }`;
 
 export type RidgeHandle = { count: number; destroy(): void };
 
 export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
-  const gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: false, powerPreference: "low-power" });
+  const gl = canvas.getContext("webgl", { antialias: false, alpha: true, powerPreference: "low-power" });
   if (!gl) return null;
   const shader = (type: number, src: string) => {
     const s = gl.createShader(type)!;
@@ -69,8 +71,8 @@ export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
   gl.useProgram(prog);
 
   const small = canvas.clientWidth < 700;
-  const cols = small ? 120 : 200;
-  const rows = small ? 48 : 64;
+  const cols = small ? 100 : 170;
+  const rows = small ? 34 : 54;
   const data = new Float32Array(cols * rows * 4);
   let i = 0;
   for (let r = 0; r < rows; r++) {
@@ -109,7 +111,8 @@ export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
   const theme = () => {
     const light = document.documentElement.getAttribute("data-theme") === "light";
     gl.uniform1f(uLight, light ? 1 : 0);
-    gl.blendFunc(gl.SRC_ALPHA, light ? gl.ONE_MINUS_SRC_ALPHA : gl.ONE);
+    // Premultiplied output: additive glow on dark, normal "over" on light.
+    gl.blendFunc(gl.ONE, light ? gl.ONE_MINUS_SRC_ALPHA : gl.ONE);
   };
   const onPointer = (e: PointerEvent) => {
     const r = canvas.getBoundingClientRect();
@@ -135,7 +138,8 @@ export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
     mouse.amp += (mouse.tamp - mouse.amp) * 0.05;
     const h = canvas.parentElement?.clientHeight || canvas.clientHeight || 1;
     gl.uniform1f(uTime, t);
-    gl.uniform1f(uAspect, canvas.width / canvas.height || 1);
+    // Clamp on tall phones so more of the range fits across the screen.
+    gl.uniform1f(uAspect, Math.max(0.8, canvas.width / canvas.height || 1));
     gl.uniform1f(uScroll, Math.min(1, Math.max(0, window.scrollY / h)));
     gl.uniform1f(uAmp, mouse.amp);
     gl.uniform1f(uDpr, dpr);

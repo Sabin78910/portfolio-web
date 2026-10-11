@@ -82,6 +82,11 @@ export default function App() {
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-case="${slug}"]`)?.focus());
   };
 
+  // A shared #work/<slug> link lands on the case study, not the hero.
+  useEffect(() => {
+    if (caseFromHash(window.location.hash)) document.getElementById("projects")?.scrollIntoView?.({ block: "start" });
+  }, []);
+
   const index = selected ? projects.indexOf(selected) : -1;
   const at = (i: number) => projects[(i + projects.length) % projects.length];
 

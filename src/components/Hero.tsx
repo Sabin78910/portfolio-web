@@ -3,9 +3,9 @@ import { heroMode, readHeroEnv, ridgeHeight } from "../hero/support";
 import { computeStats, projects } from "../data";
 
 const LAYERS = [
-  { z: 1, base: 390, scale: 300, cls: "far" },
-  { z: 0.62, base: 455, scale: 220, cls: "mid" },
-  { z: 0.28, base: 520, scale: 150, cls: "near" },
+  { z: 1, base: 440, scale: 210, cls: "far" },
+  { z: 0.62, base: 490, scale: 160, cls: "mid" },
+  { z: 0.28, base: 545, scale: 110, cls: "near" },
 ];
 
 /** Static SVG range drawn from the same height function: the LCP-safe poster and the reduced-motion/low-end fallback. */

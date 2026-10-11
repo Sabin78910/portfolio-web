@@ -31,7 +31,7 @@ export function Systems() {
       <div className="section-head">
         <p className="eyebrow">Systems</p>
         <h2 id="systems-heading">A release loop that runs itself</h2>
-        <p className="lede">Sixteen repos run on one self-driving loop in GitHub's cloud. I set direction and review; the pipeline plans, builds, tests, ships and checks its own work.</p>
+        <p className="lede">Sixteen repos run on one self-driving loop in GitHub's cloud. I set direction and review; the pipeline plans, builds, tests, ships and checks its own work. A red main branch is auto-fixed: it becomes a new issue.</p>
       </div>
       <div className="loop">
         <svg className="loop-ring" viewBox="0 0 1000 560" aria-hidden="true" focusable="false">
@@ -43,7 +43,7 @@ export function Systems() {
           </defs>
           <path className="ring-base" d={RING} />
           <path className="ring-chord" d={`M${ci.x} ${ci.y} Q 640 250 ${issue.x} ${issue.y}`} />
-          <text className="ring-note" x="690" y="246">auto-fix: a red main becomes an issue</text>
+          <text className="ring-note" x="676" y="262">auto-fix</text>
           <path className="ring-comet" d={RING} pathLength={100} />
           <path className="ring-comet ring-comet-2" d={RING} pathLength={100} />
           <path className="ring-comet ring-comet-3" d={RING} pathLength={100} />
@@ -60,7 +60,7 @@ export function Systems() {
           <div className="hub-core">
             <strong><CountUp value={REPOS} /></strong>
             <span>repos</span>
-            <em>devops-hq watches all of them 24/7 and resumes after usage limits</em>
+            <em>watched 24/7 by devops-hq</em>
           </div>
         </div>
         <ol className="loop-steps" aria-label="Release loop">
