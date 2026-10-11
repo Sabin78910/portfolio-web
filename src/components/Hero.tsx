@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { readPaused, togglePaused, writePaused } from "../hero/pause";
 import { heroMode, readHeroEnv, ridgeHeight } from "../hero/support";
 import { computeStats, projects } from "../data";
 
@@ -34,6 +35,9 @@ function RidgePoster() {
 export function Hero() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [count, setCount] = useState(0);
+  const [paused, setPaused] = useState(readPaused);
+  const handle = useRef<{ setPaused(p: boolean): void } | null>(null);
+  const pausedRef = useRef(paused);
   const stats = computeStats(projects);
   useEffect(() => {
     if (heroMode(readHeroEnv()) !== "webgl") return;
@@ -45,6 +49,8 @@ export function Hero() {
         const h = startRidge(canvas.current);
         if (h) {
           destroy = h.destroy;
+          handle.current = h;
+          h.setPaused(pausedRef.current);
           setCount(h.count);
         }
       });
@@ -56,6 +62,13 @@ export function Hero() {
       destroy();
     };
   }, []);
+  const onToggle = () => {
+    const next = togglePaused(paused);
+    pausedRef.current = next;
+    setPaused(next);
+    writePaused(next);
+    handle.current?.setPaused(next);
+  };
   return (
     <section className="hero" aria-label="Introduction" id="top">
       <canvas ref={canvas} className="hero-canvas" aria-hidden="true" />
@@ -75,6 +88,11 @@ export function Hero() {
           <button type="button" className="btn btn-ghost print-btn" onClick={() => window.print()}>Save as PDF</button>
         </div>
       </div>
+      {count > 0 && (
+        <button type="button" className="btn btn-ghost motion-toggle" aria-pressed={paused} onClick={onToggle}>
+          Pause motion
+        </button>
+      )}
       {count > 0 && (
         <p className="hero-caption" aria-hidden="true">
           {count.toLocaleString("en-US")} particles · hand-written WebGL · move to stir the range

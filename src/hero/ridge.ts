@@ -52,7 +52,7 @@ void main() {
   gl_FragColor = vec4(c * a, a);
 }`;
 
-export type RidgeHandle = { count: number; destroy(): void };
+export type RidgeHandle = { count: number; setPaused(paused: boolean): void; destroy(): void };
 
 export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
   const gl = canvas.getContext("webgl", { antialias: false, alpha: true, powerPreference: "low-power" });
@@ -122,9 +122,10 @@ export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
     mouse.tamp = 1;
     mouse.last = performance.now();
   };
+  let paused = false;
   const frame = (now: number) => {
     raf = 0;
-    if (!visible || document.hidden) return;
+    if (paused || !visible || document.hidden) return;
     const t = (now - t0) / 1000;
     if (now - mouse.last > 2500) {
       // Idle: the "wind" wanders across the range so the scene stays alive on touch screens too.
@@ -151,7 +152,7 @@ export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
     raf = requestAnimationFrame(frame);
   };
   const kick = () => {
-    if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+    if (!raf && !paused && visible && !document.hidden) raf = requestAnimationFrame(frame);
   };
 
   resize();
@@ -172,6 +173,13 @@ export function startRidge(canvas: HTMLCanvasElement): RidgeHandle | null {
 
   return {
     count: cols * rows,
+    setPaused(p) {
+      paused = p;
+      if (p) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else kick();
+    },
     destroy() {
       cancelAnimationFrame(raf);
       ro.disconnect();
