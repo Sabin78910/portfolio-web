@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } fr
 import { categoryIcons, categoryOf, repoName, type Project } from "../data";
 import { checkCi, checkHealth, checkHealthUrl, checkSite, ciLabel, siteLabel, statusLabel, type ApiStatus } from "../status";
 
+const WAKE_RETRY_MS = 30000;
 const OWNER = "Sabin78910";
 type Dot = { state: "ok" | "warn" | "bad" | "idle" | "checking"; label: string };
 
@@ -9,9 +10,17 @@ export function StatusBadge({ api, health }: { api: string; health?: string }) {
   const [status, setStatus] = useState<ApiStatus | null>(null);
   useEffect(() => {
     let active = true;
-    (health ? checkHealthUrl(health) : checkHealth(api)).then((s) => active && setStatus(s));
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const check = () => (health ? checkHealthUrl(health) : checkHealth(api));
+    check().then((s) => {
+      if (!active) return;
+      setStatus(s);
+      // Render's free tier cold-starts in 30-60s: look again once.
+      if (s === "waking") timer = setTimeout(() => check().then((r) => active && setStatus(r)), WAKE_RETRY_MS);
+    });
     return () => {
       active = false;
+      clearTimeout(timer);
     };
   }, [api, health]);
   return (
