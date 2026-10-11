@@ -58,6 +58,13 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  // The browser jumps to the anchor before React renders it, so scroll once after the first render.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (!id || id.startsWith("work/")) return;
+    document.getElementById(id)?.scrollIntoView?.({ behavior: "auto", block: "start" });
+  }, []);
+
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);

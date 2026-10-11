@@ -391,3 +391,28 @@ describe("Save as PDF", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("hash scroll", () => {
+  afterEach(() => {
+    window.history.replaceState(null, "", "/");
+    vi.restoreAllMocks();
+  });
+
+  test("scrolls to the section named by the URL hash after render", () => {
+    const spy = vi.fn();
+    Element.prototype.scrollIntoView = spy;
+    window.history.replaceState(null, "", "/#systems");
+    render(<App />);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.contexts[0]).toBe(document.getElementById("systems"));
+    expect(spy).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
+  });
+
+  test("ignores work/ case-study hashes and unknown ids", () => {
+    const spy = vi.fn();
+    Element.prototype.scrollIntoView = spy;
+    window.history.replaceState(null, "", "/#nope");
+    render(<App />);
+    expect(spy).not.toHaveBeenCalled();
+  });
+});
