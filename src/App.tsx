@@ -117,7 +117,7 @@ export default function App() {
         <a href="#skills">Skills</a>
         <a href="#contact" className="nav-cta">Let's talk</a>
       </nav>
-      <button className="icon-btn" onClick={toggleTheme}>
+      <button className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Light theme" : "Dark theme"}>
         <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
         <span className="btn-label">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
       </button>
