@@ -34,6 +34,15 @@ export default function App() {
   const shown = filterByQuery(filterByTag(projects, tag), query);
 
   useEffect(() => {
+    if (!selected) return;
+    const base = document.title;
+    document.title = `${selected.name} case study · Sabin Khanal`;
+    return () => {
+      document.title = base;
+    };
+  }, [selected]);
+
+  useEffect(() => {
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${serializeFilters({ tag, query })}${hash}`);
   }, [tag, query]);

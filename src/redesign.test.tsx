@@ -30,6 +30,16 @@ test("case studies follow problem, research, design, result and deep-link via th
   expect(window.location.hash).toBe("#work/prism-pop");
 });
 
+test("document.title names the open case study and is restored by Back to projects", async () => {
+  window.history.replaceState(null, "", "/");
+  document.title = "Sabin Khanal — Software Developer, Nepal";
+  render(<App />);
+  await userEvent.click(screen.getByRole("button", { name: "Read case study: Ludo Live" }));
+  expect(document.title).toBe("Ludo Live case study · Sabin Khanal");
+  await userEvent.click(screen.getByRole("button", { name: /Back to projects/ }));
+  expect(document.title).toBe("Sabin Khanal — Software Developer, Nepal");
+});
+
 test("loading #work/<slug> opens that case study", () => {
   window.history.replaceState(null, "", "/#work/nepse-lens");
   render(<App />);
