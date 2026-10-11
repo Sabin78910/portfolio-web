@@ -49,7 +49,7 @@ test("every card shows its tests, stack and a live status", () => {
 });
 
 test("site status dot reports Online from a HEAD ping", async () => {
-  const f = vi.fn((url: string) => Promise.resolve(url.includes("github.io") ? { ok: true, status: 200 } : { ok: false, status: 500 }));
+  const f = vi.fn((url: string) => Promise.resolve(new URL(url).hostname === "sabin78910.github.io" ? { ok: true, status: 200 } : { ok: false, status: 500 }));
   vi.stubGlobal("fetch", f);
   render(<App />);
   expect(await within(screen.getByRole("article", { name: "Prism Pop" })).findByText("Online")).toBeInTheDocument();
