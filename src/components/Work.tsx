@@ -55,12 +55,17 @@ export function LiveDot({ p }: { p: Project }) {
 }
 
 export function Shot({ image, name }: { image: NonNullable<Project["image"]>; name: string }) {
+  const [failed, setFailed] = useState(false);
   return (
     <div className={`frame frame-${image.kind}`} style={{ viewTransitionName: `shot-${name.replace(/\W+/g, "-")}` } as CSSProperties}>
       {image.kind === "desktop" && (
         <div className="frame-bar" aria-hidden="true"><span /><span /><span /></div>
       )}
-      <img src={image.src} alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
+      {failed ? (
+        <div className="frame-fallback"><span aria-hidden="true">▣</span>{name}</div>
+      ) : (
+        <img src={image.src} alt={image.alt} width={image.width} height={image.height} decoding="async" onError={() => setFailed(true)} />
+      )}
     </div>
   );
 }
