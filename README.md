@@ -27,3 +27,10 @@ npm run build
 
 ## Security
 Vulnerability reports: see `public/.well-known/security.txt` (RFC 9116). Renew its `Expires` date yearly.
+
+## Performance budget
+| Check | Where | Fails when |
+|---|---|---|
+| Lighthouse budget | `.github/workflows/lighthouse.yml` + `lighthouserc.json` | mobile performance < 0.9, accessibility < 0.95, or CLS > 0.05 (median of 3 runs) |
+
+Run it locally: `npm run build && npx @lhci/cli@0.15.1 autorun`.

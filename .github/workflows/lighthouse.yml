@@ -1,0 +1,33 @@
+name: Lighthouse budget
+
+# Separate from CI so the main pipeline stays fast. Builds the site, serves dist/ locally and runs
+# Lighthouse CI on mobile, three runs, median. Fails if performance < 0.9, accessibility < 0.95,
+# or cumulative layout shift > 0.05 (see lighthouserc.json).
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Lighthouse CI (mobile, median of 3)
+        run: npx -y @lhci/cli@0.15.1 autorun
