@@ -198,6 +198,7 @@ export function CaseStudy({ project: p, onBack, prev, next, onGo }: { project: P
       <nav className="case-nav" aria-label="More case studies">
         <button type="button" onClick={() => onGo(prev)}>← {prev.name}</button>
         <button type="button" onClick={() => onGo(next)}>{next.name} →</button>
+        <p className="case-hint muted">Tip: ← → to browse, Esc to close</p>
       </nav>
     </section>
   );
