@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { readProgress } from "../readProgress";
 import { categoryIcons, categoryOf, repoName, type Project } from "../data";
 import { checkCi, checkHealth, checkHealthUrl, checkSite, ciLabel, siteLabel, statusLabel, type ApiStatus } from "../status";
 
@@ -160,11 +161,35 @@ const STEPS = [
 
 export function CaseStudy({ project: p, onBack, prev, next, onGo }: { project: Project; onBack: () => void; prev: Project; next: Project; onGo: (p: Project) => void }) {
   const heading = useRef<HTMLHeadingElement>(null);
+  const section = useRef<HTMLElement>(null);
+  const [progress, setProgress] = useState(0);
   useEffect(() => {
     heading.current?.focus({ preventScroll: true });
   }, [p]);
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (section.current) setProgress(readProgress(section.current.getBoundingClientRect(), window.innerHeight));
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [p]);
+  const pct = Math.round(progress * 100);
   return (
-    <section aria-label={p.name} className="case" style={{ "--accent-c": p.accent } as CSSProperties}>
+    <section ref={section} aria-label={p.name} className="case" style={{ "--accent-c": p.accent } as CSSProperties}>
+      <div className="read-progress" role="progressbar" aria-label="Reading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} data-done={pct === 100}>
+        <span style={{ transform: `scaleX(${progress})` }} />
+      </div>
       <button type="button" className="back" onClick={onBack}>← Back to projects</button>
       <div className="case-grid">
         <header className="case-head">

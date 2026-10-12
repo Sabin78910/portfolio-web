@@ -188,6 +188,9 @@ section { scroll-margin-top: 76px; }
 /* ---------- Case study ---------- */
 .case { --accent-c: var(--violet); position: relative; padding: 20px; border-radius: 28px; border: 1px solid var(--border); background: radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--accent-c) 18%, transparent), transparent 70%), var(--card); box-shadow: var(--shadow); }
 .back { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
+.read-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 50; background: color-mix(in srgb, var(--accent-c) 18%, transparent); pointer-events: none; }
+.read-progress span { display: block; height: 100%; background: var(--accent-c); transform-origin: left; transition: transform 0.12s linear; }
+@media (prefers-reduced-motion: reduce) { .read-progress span { transition: none; } }
 .case-grid { display: grid; gap: 24px; margin: 20px 0 32px; align-items: center; }
 .case-head h2 { font-size: clamp(2.4rem, 8vw, 4.5rem); line-height: 1; margin: 0 0 12px; letter-spacing: -0.045em; }
 .case-head h2:focus { outline: none; }
@@ -314,7 +317,7 @@ main:focus { outline: none; }
   :focus-visible, button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: 2px; }
 }
 @media print {
-  .topbar, .search, .chips, .blob, .marquee, .skip-link, .print-btn, .motion-toggle, .hero-canvas, .hero-poster, .hero-caption, .loop-ring, .hub-orbit, .contact-form, .work-count, .case-nav, .tile-media, .copy-status { display: none !important; }
+  .topbar, .search, .chips, .blob, .marquee, .skip-link, .print-btn, .motion-toggle, .hero-canvas, .hero-poster, .hero-caption, .loop-ring, .hub-orbit, .contact-form, .work-count, .case-nav, .read-progress, .tile-media, .copy-status { display: none !important; }
   :root, :root[data-theme="dark"], body, .hero, .tile, .card, .stat, .stats, .loop, .loop-node, .skill, .case, .case-steps li { --bg: #fff; --fg: #111; --muted: #444; --card: #fff; --card-solid: #fff; --border: #ccc; background: #fff !important; background-image: none !important; color: #000; box-shadow: none; backdrop-filter: none; }
   body::before { display: none; }
   .hero { min-height: 0; margin: 0; padding: 0 0 16px; }
