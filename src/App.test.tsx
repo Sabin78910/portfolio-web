@@ -214,7 +214,7 @@ describe("bento project grid", () => {
     const img = within(tile).getByRole("img");
     expect(img).toHaveAttribute("src", `./shots/${file}`);
     expect(img.getAttribute("alt")).toMatch(new RegExp(name, "i"));
-    expect(img).toHaveAttribute("loading", "lazy");
+    expect(img).not.toHaveAttribute("loading", "lazy");
     expect(img).toHaveAttribute("width");
     expect(img).toHaveAttribute("height");
     expect(img.closest(".frame")).toHaveClass(`frame-${kind}`);
