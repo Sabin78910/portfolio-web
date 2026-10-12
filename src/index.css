@@ -206,6 +206,8 @@ section { scroll-margin-top: 76px; }
 .case-stack p { margin: 0; color: var(--muted); }
 .case-nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .case-nav button { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
+.case-hint { flex-basis: 100%; margin: 0; font-size: 14px; }
+@media (hover: none) { .case-hint { display: none; } }
 @media (min-width: 900px) {
   .case { padding: 36px; }
   .case-grid { grid-template-columns: 1.1fr 1fr; }

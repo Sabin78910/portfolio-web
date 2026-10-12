@@ -10,6 +10,7 @@ import { CaseStudy, ProjectTile } from "./components/Work";
 import { Systems } from "./components/Systems";
 import { ContactForm } from "./components/ContactForm";
 import { CountUp } from "./components/CountUp";
+import { caseKeyAction } from "./caseKeys";
 
 const caseFromHash = (hash: string): Project | null => {
   const m = /^#work\/([\w-]+)$/.exec(hash);
@@ -89,6 +90,8 @@ export default function App() {
     scrollToWork();
   };
 
+  const at = (i: number) => projects[(i + projects.length) % projects.length];
+
   const closeCase = () => {
     const slug = selected?.slug;
     const pushed = (window.history.state as { case?: string } | null)?.case;
@@ -98,13 +101,26 @@ export default function App() {
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-case="${slug}"]`)?.focus());
   };
 
+  useEffect(() => {
+    if (!selected) return;
+    const i = projects.indexOf(selected);
+    const onKey = (e: KeyboardEvent) => {
+      const a = caseKeyAction(e);
+      if (!a) return;
+      e.preventDefault();
+      if (a === "close") closeCase();
+      else openCase(at(a === "prev" ? i - 1 : i + 1), true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   // A shared #work/<slug> link lands on the case study, not the hero.
   useEffect(() => {
     if (caseFromHash(window.location.hash)) document.getElementById("projects")?.scrollIntoView?.({ block: "start" });
   }, []);
 
   const index = selected ? projects.indexOf(selected) : -1;
-  const at = (i: number) => projects[(i + projects.length) % projects.length];
 
   return (
     <>
