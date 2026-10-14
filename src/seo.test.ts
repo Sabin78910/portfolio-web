@@ -65,9 +65,7 @@ describe("security meta", () => {
   });
 
   it("limits connect-src to hosts the app calls", () => {
-    expect(directive("connect-src")).toBe(
-      "connect-src 'self' https://api.github.com https://inventory-api-tagg.onrender.com https://bookstore-api-lhpl.onrender.com https://sync-api.sabin-apps.workers.dev",
-    );
+    expect(directive("connect-src")).toBe("connect-src 'self'");
   });
 
   it("sets a referrer policy", () => {
