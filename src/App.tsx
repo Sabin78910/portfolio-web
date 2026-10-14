@@ -80,7 +80,7 @@ export default function App() {
               {about.notes.map((n) => (
                 <p className="note" key={n.label}><strong>{n.label}:</strong> {n.text}</p>
               ))}
-              <a className="btn btn-ghost-theme" href={contact.linkedin} target="_blank" rel="noreferrer">Find me on LinkedIn <span aria-hidden="true">↗</span></a>
+              <a className="btn btn-light" href={contact.linkedin} target="_blank" rel="noreferrer">Find me on LinkedIn <span aria-hidden="true">↗</span></a>
             </div>
             <div className="card profile-card">
               <h3>Profile summary</h3>
