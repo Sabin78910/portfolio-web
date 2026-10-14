@@ -1,418 +1,149 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
-import { allTags, computeStats, contact, filterByQuery, filterByTag, projects, skills, techStack } from "./data";
+import { contact, education, experience, hero, heroStats, profileSummary, projects, techStack } from "./data";
 
-test("filters projects by tag", () => {
-  expect(filterByTag(projects, "Android")).toHaveLength(3);
-  expect(filterByTag(projects, null)).toHaveLength(projects.length);
-  expect(allTags(projects)).toContain("Python");
+afterEach(() => {
+  window.history.replaceState(null, "", "/");
+  localStorage.clear();
 });
 
-test("clicking a tag filters the list", async () => {
-  render(<App />);
-  expect(screen.getAllByRole("article")).toHaveLength(projects.length);
-  await userEvent.click(screen.getByRole("button", { name: "ML" }));
-  expect(screen.getAllByRole("article")).toHaveLength(1);
-});
-
-test("contact section renders email and GitHub links", () => {
-  render(<App />);
-  const section = within(screen.getByRole("region", { name: "Contact" }));
-  expect(section.getByRole("link", { name: "Email" })).toHaveAttribute("href", `mailto:${contact.email}`);
-  expect(section.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", contact.github);
-});
-
-test("filterByQuery matches name or description case-insensitively", () => {
-  expect(filterByQuery(projects, "")).toHaveLength(projects.length);
-  expect(filterByQuery(projects, "  ")).toHaveLength(projects.length);
-  expect(filterByQuery(projects, "weather").map((p) => p.name)).toEqual(["Weather Dashboard"]);
-  expect(filterByQuery(projects, "FASTAPI service")).toHaveLength(1);
-  expect(filterByQuery(projects, "zzz")).toHaveLength(0);
-});
-
-test("search box filters projects and combines with tag filter", async () => {
-  render(<App />);
-  const box = screen.getByRole("searchbox", { name: /search projects/i });
-  await userEvent.type(box, "calculator");
-  expect(screen.getAllByRole("article")).toHaveLength(2);
-  await userEvent.click(screen.getByRole("button", { name: "Web" }));
-  expect(screen.getAllByRole("article")).toHaveLength(1);
-  await userEvent.clear(box);
-  await userEvent.type(box, "zzz");
-  expect(screen.queryAllByRole("article")).toHaveLength(0);
-});
-
-describe("theme toggle", () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute("data-theme");
-  });
-
-  test("toggle changes data-theme on <html> and persists it", async () => {
+describe("page structure", () => {
+  it("leads with the name, tagline, location and the three hero actions", () => {
     render(<App />);
-    const btn = screen.getByRole("button", { name: /theme/i });
-    await userEvent.click(btn);
-    const first = document.documentElement.getAttribute("data-theme");
-    expect(["dark", "light"]).toContain(first);
-    expect(localStorage.getItem("theme")).toBe(first);
-    await userEvent.click(btn);
-    const second = document.documentElement.getAttribute("data-theme");
-    expect(second).not.toBe(first);
-    expect(localStorage.getItem("theme")).toBe(second);
+    expect(screen.getByRole("heading", { level: 1, name: hero.name })).toBeInTheDocument();
+    expect(screen.getByText(hero.tagline)).toBeInTheDocument();
+    expect(screen.getByText(contact.location, { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /View my work/ })).toHaveAttribute("href", "#projects");
+    expect(screen.getByRole("link", { name: "Get in touch" })).toHaveAttribute("href", "#contact");
   });
 
-  test("restores saved theme", () => {
-    localStorage.setItem("theme", "dark");
+  it("links every nav item to a section that exists", () => {
+    const { container } = render(<App />);
+    const ids = within(screen.getByRole("navigation", { name: "Sections" }))
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href")!);
+    expect(ids).toEqual(["#about", "#experience", "#education", "#projects", "#contact"]);
+    for (const id of ids) expect(container.querySelector(id), id).not.toBeNull();
+  });
+
+  it("shows the headline stats", () => {
     render(<App />);
-    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    const row = within(screen.getByRole("region", { name: "Stats" }));
+    for (const s of heroStats) expect(row.getByText(s.label)).toBeInTheDocument();
+    expect(row.getByText("100%")).toBeInTheDocument();
   });
 
-  test("works when localStorage throws", async () => {
-    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("denied"); });
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("denied"); });
+  it("lists the profile summary rows", () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: /theme/i }));
-    expect(document.documentElement.getAttribute("data-theme")).toBeTruthy();
-    vi.restoreAllMocks();
+    const card = within(screen.getByRole("region", { name: /About/ }));
+    for (const r of profileSummary) expect(card.getByText(r.term)).toBeInTheDocument();
   });
-});
 
-test("skills section renders grouped lists", () => {
-  render(<App />);
-  expect(skills.map((g) => g.area)).toEqual(["Android", "Web", "Backend", "ML"]);
-  const section = within(screen.getByRole("region", { name: "Skills" }));
-  for (const g of skills) {
-    const group = within(section.getByRole("group", { name: g.area }));
-    expect(group.getAllByRole("listitem")).toHaveLength(g.items.length);
-  }
-});
-
-describe("project case studies", () => {
-  test("every project has case study content", () => {
-    for (const p of projects) {
-      expect(p.problem.length).toBeGreaterThan(0);
-      expect(p.approach.length).toBeGreaterThan(0);
-      expect(p.results.length).toBeGreaterThan(0);
-      expect(p.stack.length).toBeGreaterThan(0);
+  it("lists every job with its dates, employer and bullets", () => {
+    render(<App />);
+    const list = within(screen.getByRole("region", { name: /Where I've worked/ }));
+    for (const j of experience) {
+      expect(list.getByRole("heading", { level: 3, name: j.title })).toBeInTheDocument();
+      expect(list.getByText(j.dates)).toBeInTheDocument();
+      for (const p of j.points) expect(list.getByText(p)).toBeInTheDocument();
     }
   });
 
-  test("opening a project shows its detail view and back returns to the list", async () => {
+  it("lists every school", () => {
     render(<App />);
-    const p = projects.find((x) => x.name === "Weather Dashboard")!;
-    await userEvent.click(screen.getByRole("button", { name: `Read case study: ${p.name}` }));
-    expect(screen.queryAllByRole("article")).toHaveLength(0);
-    const detail = within(screen.getByRole("region", { name: p.name }));
-    expect(detail.getByText(p.problem)).toBeInTheDocument();
-    expect(detail.getByText(p.approach)).toBeInTheDocument();
-    expect(detail.getByText(p.results)).toBeInTheDocument();
-    expect(detail.getByText(p.stack.join(", "))).toBeInTheDocument();
-    expect(detail.getByRole("link", { name: /repo/i })).toHaveAttribute("href", p.repo);
-    expect(detail.getByRole("link", { name: /live/i })).toHaveAttribute("href", p.live);
-    await userEvent.click(screen.getByRole("button", { name: /back/i }));
-    expect(screen.getAllByRole("article")).toHaveLength(projects.length);
+    const list = within(screen.getByRole("region", { name: /Where I've studied/ }));
+    for (const e of education) expect(list.getByRole("heading", { level: 3, name: e.degree })).toBeInTheDocument();
   });
 
-  test("live link is omitted when a project has none", async () => {
+  it("gives every project a numbered card with its bullets and stack", () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Read case study: Notes" }));
-    expect(within(screen.getByRole("region", { name: "Notes" })).queryByRole("link", { name: /live/i })).toBeNull();
+    projects.forEach((p, i) => {
+      const card = within(screen.getByRole("article", { name: p.name }));
+      expect(card.getByText(String(i + 1).padStart(2, "0"))).toBeInTheDocument();
+      for (const pt of p.points) expect(card.getByText(pt)).toBeInTheDocument();
+      expect(card.getByRole("list", { name: `Stack: ${p.name}` })).toBeInTheDocument();
+    });
+  });
+
+  it("sends people to the real GitHub and LinkedIn profiles", () => {
+    render(<App />);
+    expect(screen.getByRole("link", { name: /Visit GitHub/ })).toHaveAttribute("href", contact.github);
+    expect(screen.getByRole("link", { name: /Find me on LinkedIn/ })).toHaveAttribute("href", contact.linkedin);
+  });
+
+  it("never shows a second email address", () => {
+    const { container } = render(<App />);
+    const emails = new Set(container.innerHTML.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) ?? []);
+    expect(emails.size).toBeLessThanOrEqual(1);
   });
 });
 
-test("API cards show live links and health status badges from mocked fetch", async () => {
-  const f = vi.fn((url: string) =>
-    Promise.resolve(url.includes("inventory") ? { ok: true, status: 200 } : url.includes("bookstore") ? { ok: false, status: 503 } : { ok: false, status: 404 }),
-  );
-  vi.stubGlobal("fetch", f);
-  render(<App />);
-  expect(screen.getByRole("link", { name: "Live API: Inventory API" })).toHaveAttribute("href", "https://inventory-api-tagg.onrender.com");
-  expect(screen.getByRole("link", { name: "Live API: Bookstore API" })).toHaveAttribute("href", "https://bookstore-api-lhpl.onrender.com");
-  expect(screen.getByRole("link", { name: "Live API: Sync API" })).toHaveAttribute("href", "https://sync-api.sabin-apps.workers.dev/v1/health");
-  expect(screen.getAllByRole("link", { name: /^Live demo:/ })).toHaveLength(projects.filter((p) => p.live).length);
-  expect(await screen.findByText("Live")).toBeInTheDocument();
-  expect(await screen.findByText("Waking up")).toBeInTheDocument();
-  vi.unstubAllGlobals();
-});
-
-test("GitHub activity section lists repos from the API", async () => {
-  sessionStorage.clear();
-  const body = [{ name: "demo-repo", html_url: "https://github.com/u/demo-repo", stargazers_count: 5, language: "Kotlin", pushed_at: "2026-01-02T00:00:00Z", fork: false }];
-  const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true, status: 200, json: async () => body } as Response);
-  render(<App />);
-  const section = within(screen.getByRole("region", { name: "GitHub activity" }));
-  expect(await section.findByRole("link", { name: "demo-repo" })).toHaveAttribute("href", "https://github.com/u/demo-repo");
-  expect(section.getByText(/★ 5/)).toBeInTheDocument();
-  spy.mockRestore();
-});
-
-test("GitHub activity falls back to a profile link when the API fails", async () => {
-  sessionStorage.clear();
-  const spy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("offline"));
-  render(<App />);
-  const section = within(screen.getByRole("region", { name: "GitHub activity" }));
-  expect(await section.findByRole("link", { name: /GitHub profile/ })).toHaveAttribute("href", contact.github);
-  spy.mockRestore();
-});
-
-describe("redesign hero", () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute("data-theme");
-  });
-
-  test("hero shows headline, tagline and CTA links", () => {
+describe("controls", () => {
+  it("toggles the theme and remembers it", async () => {
     render(<App />);
-    expect(screen.getByRole("heading", { level: 1, name: "Sabin Khanal" })).toBeInTheDocument();
-    expect(screen.getByText("I build Android, web and game apps people love to use")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "View projects" })).toHaveAttribute("href", "#projects");
-    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "#contact");
-  });
-
-  test("defaults to dark theme when nothing saved", () => {
-    render(<App />);
-    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
-  });
-
-  test("theme button has an accessible name and visible label span for icon mode", () => {
-    render(<App />);
-    const btn = screen.getByRole("button", { name: /light theme/i });
+    const btn = screen.getByRole("button", { name: /theme/i });
     expect(btn.querySelector(".btn-label")).not.toBeNull();
-    expect(btn.querySelector("[aria-hidden='true']")).not.toBeNull();
-  });
-
-  test("filter chips live in a scrollable container", () => {
-    render(<App />);
-    expect(screen.getByRole("button", { name: "All" }).parentElement).toHaveClass("chips");
-  });
-});
-
-describe("bento project grid", () => {
-  test("the four new apps and Block Drop are the featured tiles", () => {
-    render(<App />);
-    expect(projects.filter((p) => p.featured).map((p) => p.name)).toEqual(["Ludo Live", "Prism Pop", "NEPSE Lens", "Khabar Pulse", "Block Drop"]);
-    expect(screen.getByRole("article", { name: "Block Drop" })).toHaveClass("tile", "tile-featured");
-  });
-
-  const shots: Record<string, [string, "desktop" | "phone"]> = {
-    "Ludo Live": ["ludo-live.webp", "phone"],
-    "Prism Pop": ["prism-pop.webp", "phone"],
-    "Khabar Pulse": ["khabar-pulse.webp", "phone"],
-    "NEPSE Lens": ["nepse-lens.webp", "desktop"],
-    Todo: ["todo.webp", "desktop"],
-    "Weather Dashboard": ["weather-dashboard.webp", "desktop"],
-    "Loan Calculator": ["loan-calculator.webp", "desktop"],
-    "Expense Tracker": ["expense-android.jpg", "phone"],
-    "EMI Calculator": ["emi-android.jpg", "phone"],
-    "Block Drop": ["blockdrop-gameplay.jpg", "phone"],
-  };
-
-  test.each(Object.entries(shots))("%s tile shows its screenshot in the right frame", (name, [file, kind]) => {
-    render(<App />);
-    const tile = screen.getByRole("article", { name });
-    const img = within(tile).getByRole("img");
-    expect(img).toHaveAttribute("src", `./shots/${file}`);
-    expect(img.getAttribute("alt")).toMatch(new RegExp(name, "i"));
-    expect(img).not.toHaveAttribute("loading", "lazy");
-    expect(img).toHaveAttribute("width");
-    expect(img).toHaveAttribute("height");
-    expect(img.closest(".frame")).toHaveClass(`frame-${kind}`);
-  });
-
-  test.each(Object.entries(shots))("%s case study shows its screenshot", async (name, [file]) => {
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: `Read case study: ${name}` }));
-    const img = within(screen.getByRole("region", { name })).getByRole("img");
-    expect(img).toHaveAttribute("src", `./shots/${file}`);
-  });
-
-  test("projects without a shot keep the gradient tile", () => {
-    render(<App />);
-    const tile = screen.getByRole("article", { name: "Notes" });
-    expect(within(tile).queryByRole("img")).toBeNull();
-  });
-
-  test("other tiles have a category icon, gradient class, status pill and tags", () => {
-    render(<App />);
-    const tile = screen.getByRole("article", { name: "Notes" });
-    expect(tile).not.toHaveClass("tile-featured");
-    expect(tile).toHaveAttribute("data-category", "Android");
-    expect(tile.querySelector(".tile-icon")).not.toBeNull();
-    expect(within(tile).getByText("Open source")).toHaveClass("pill");
-    expect(within(tile).getByText("Kotlin")).toBeInTheDocument();
-    expect(within(screen.getByRole("article", { name: "Todo" })).getByText("Live demo")).toHaveClass("pill");
-  });
-
-  test("grid container exists", () => {
-    render(<App />);
-    expect(screen.getByRole("article", { name: "Notes" }).parentElement).toHaveClass("bento");
-  });
-});
-
-describe("stats, tech stack and footer", () => {
-  test("computeStats derives numbers from projects", () => {
-    expect(computeStats(projects)).toEqual({ apps: 15, apis: 3, tested: 15, tests: projects.reduce((n, p) => n + p.tests, 0) });
-  });
-
-  test("techStack is a unique, sorted union of project stacks", () => {
-    const t = techStack(projects);
-    expect(t).toContain("Kotlin");
-    expect(new Set(t).size).toBe(t.length);
-    expect(t).toEqual([...t].sort());
-  });
-
-  test("stats row renders", () => {
-    render(<App />);
-    const row = within(screen.getByRole("region", { name: "Stats" }));
-    expect(row.getByText(`${projects.length}+`)).toBeInTheDocument();
-    expect(row.getByText("Live APIs")).toBeInTheDocument();
-    expect(row.getByText("Projects with automated tests")).toBeInTheDocument();
-  });
-
-  test("marquee lists tech pills and is hidden duplicate for assistive tech", () => {
-    render(<App />);
-    const m = screen.getByLabelText("Tech stack");
-    expect(within(m).getAllByText("Kotlin")).toHaveLength(2);
-    expect(m.querySelector('[aria-hidden="true"]')).not.toBeNull();
-  });
-
-  test("marquee pause button toggles label, aria-pressed and paused state", async () => {
-    render(<App />);
-    const m = screen.getByLabelText("Tech stack");
-    const btn = within(m).getByRole("button", { name: "Pause animation" });
-    expect(btn).toHaveAttribute("aria-pressed", "false");
-    expect(m).not.toHaveAttribute("data-paused");
+    const before = document.documentElement.getAttribute("data-theme");
     await userEvent.click(btn);
-    expect(btn).toHaveAccessibleName("Play animation");
-    expect(btn).toHaveAttribute("aria-pressed", "true");
-    expect(m).toHaveAttribute("data-paused", "true");
-    await userEvent.click(btn);
-    expect(btn).toHaveAccessibleName("Pause animation");
-    expect(m).not.toHaveAttribute("data-paused");
+    expect(document.documentElement.getAttribute("data-theme")).not.toBe(before);
+    expect(localStorage.getItem("theme")).toBe(document.documentElement.getAttribute("data-theme"));
   });
 
-  test("marquee pause button is keyboard operable", async () => {
+  it("pauses the tech strip", async () => {
     render(<App />);
-    const btn = screen.getByRole("button", { name: "Pause animation" });
-    btn.focus();
-    await userEvent.keyboard("{Enter}");
-    expect(btn).toHaveAttribute("aria-pressed", "true");
+    const strip = screen.getByLabelText("Tech stack");
+    expect(within(strip).getAllByRole("listitem").length).toBe(techStack().length);
+    await userEvent.click(within(strip).getByRole("button", { name: "Pause animation" }));
+    expect(strip).toHaveAttribute("data-paused", "true");
+    expect(within(strip).getByRole("button", { name: "Play animation" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  test("reduced motion: animation is off and the pause button is hidden via CSS", async () => {
-    const { default: css } = await import("./index.css?inline");
-    expect(css).toMatch(/prefers-reduced-motion: reduce\)[^\n]*\.marquee-track \{ animation: none; \}/);
-    expect(css).toMatch(/prefers-reduced-motion: reduce\)[^\n]*\.marquee-toggle \{ display: none; \}/);
-    expect(css).toMatch(/\.marquee\[data-paused\] \.marquee-track \{ animation: none; \}/);
-  });
-
-  test("contact card has buttons and footer renders", () => {
+  it("prints the page from the CV buttons", async () => {
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
     render(<App />);
-    expect(screen.getByRole("contentinfo")).toHaveTextContent("Sabin Khanal");
-    expect(within(screen.getByRole("region", { name: "Contact" })).getAllByRole("link")[0]).toHaveClass("btn");
+    await userEvent.click(screen.getAllByRole("button", { name: "Download CV" })[0]);
+    await userEvent.click(screen.getByRole("button", { name: "CV" }));
+    expect(print).toHaveBeenCalledTimes(2);
+    print.mockRestore();
   });
-});
 
-test("skip link is the first tab stop, targets #main and focuses main", async () => {
-  render(<App />);
-  const link = screen.getByRole("link", { name: "Skip to main content" });
-  expect(link).toHaveAttribute("href", "#main");
-  await userEvent.tab();
-  expect(link).toHaveFocus();
-  const main = screen.getByRole("main");
-  expect(main).toHaveAttribute("id", "main");
-  expect(main).toHaveAttribute("tabindex", "-1");
-  await userEvent.click(link);
-  expect(main).toHaveFocus();
-});
-
-describe("copy email", () => {
-  const setClipboard = (c: unknown) => Object.defineProperty(navigator, "clipboard", { value: c, configurable: true });
-  afterEach(() => setClipboard(undefined));
-
-  test("copies email and announces success in a polite live region", async () => {
+  it("copies the email address", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
-    setClipboard({ writeText });
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "Copy email" }));
     expect(writeText).toHaveBeenCalledWith(contact.email);
-    const status = await screen.findByText("Email copied");
-    expect(status).toHaveAttribute("aria-live", "polite");
-  });
-
-  test("shows a clear message on failure", async () => {
-    setClipboard({ writeText: vi.fn().mockRejectedValue(new Error("no")) });
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Copy email" }));
-    expect(await screen.findByText(/Could not copy/)).toBeInTheDocument();
-  });
-
-  test("button is not rendered without the Clipboard API", () => {
-    setClipboard(undefined);
-    render(<App />);
-    expect(screen.queryByRole("button", { name: "Copy email" })).not.toBeInTheDocument();
-  });
-});
-
-describe("URL filters", () => {
-  afterEach(() => window.history.replaceState(null, "", "/"));
-
-  test("loading with ?category= preselects chip and filters tiles", () => {
-    window.history.replaceState(null, "", "/?category=ML");
-    render(<App />);
-    expect(screen.getByRole("button", { name: "ML" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getAllByRole("article")).toHaveLength(1);
-  });
-
-  test("changing filters updates the URL and keeps the hash", async () => {
-    window.history.replaceState(null, "", "/#contact");
-    const before = window.history.length;
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "ML" }));
-    expect(window.location.search).toBe("?category=ML");
-    expect(window.location.hash).toBe("#contact");
-    await userEvent.type(screen.getByRole("searchbox", { name: "Search projects" }), "ab");
-    expect(window.location.search).toBe("?category=ML&q=ab");
-    expect(window.history.length).toBe(before);
-    await userEvent.click(screen.getByRole("button", { name: "All" }));
-    await userEvent.clear(screen.getByRole("searchbox", { name: "Search projects" }));
-    expect(window.location.search).toBe("");
-  });
-});
-
-describe("Save as PDF", () => {
-  it("renders a button that calls window.print", async () => {
-    const print = vi.fn();
-    vi.stubGlobal("print", print);
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Save as PDF" }));
-    expect(print).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("Email copied")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
+
+  it("skip link moves focus to main", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("link", { name: "Skip to main content" }));
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
 });
 
-describe("hash scroll", () => {
-  afterEach(() => {
-    window.history.replaceState(null, "", "/");
-    vi.restoreAllMocks();
+describe("contact form", () => {
+  it("shows inline errors and focuses the first invalid field", async () => {
+    render(<App />);
+    const form = within(screen.getByRole("form", { name: "Write a message" }));
+    await userEvent.click(form.getByRole("button", { name: "Send by email" }));
+    expect(form.getByText("Please add your name.")).toBeInTheDocument();
+    expect(form.getByLabelText("Your name")).toHaveFocus();
+    expect(form.getByLabelText("Your name")).toHaveAttribute("aria-invalid", "true");
   });
 
-  test("scrolls to the section named by the URL hash after render", () => {
-    const spy = vi.fn();
-    Element.prototype.scrollIntoView = spy;
-    window.history.replaceState(null, "", "/#systems");
+  it("opens a prefilled GitHub issue and confirms it", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
     render(<App />);
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.contexts[0]).toBe(document.getElementById("systems"));
-    expect(spy).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
-  });
-
-  test("ignores work/ case-study hashes and unknown ids", () => {
-    const spy = vi.fn();
-    Element.prototype.scrollIntoView = spy;
-    window.history.replaceState(null, "", "/#nope");
-    render(<App />);
-    expect(spy).not.toHaveBeenCalled();
+    const form = within(screen.getByRole("form", { name: "Write a message" }));
+    await userEvent.type(form.getByLabelText("Your name"), "Asha");
+    await userEvent.type(form.getByLabelText("Message"), "Hello, are you open to a Flask role?");
+    await userEvent.click(form.getByRole("button", { name: "Post as GitHub issue" }));
+    expect(open.mock.calls[0][0]).toMatch(/^https:\/\/github\.com\/Sabin78910\/portfolio-web\/issues\/new\?title=/);
+    expect(await form.findByText(/prefilled GitHub issue/)).toBeInTheDocument();
+    open.mockRestore();
   });
 });

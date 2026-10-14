@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readPaused, togglePaused, writePaused } from "../hero/pause";
 import { heroMode, readHeroEnv, ridgeHeight } from "../hero/support";
-import { computeStats, projects } from "../data";
+import { contact, hero } from "../data";
 
 const LAYERS = [
   { z: 1, base: 440, scale: 210, cls: "far" },
@@ -32,13 +32,26 @@ function RidgePoster() {
   );
 }
 
+/** The photo is optional: a missing public/portrait.jpg falls back to the monogram instead of a broken image. */
+function Portrait() {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className="portrait" aria-hidden={failed ? "true" : undefined}>
+      {failed ? (
+        <span className="portrait-fallback">SK</span>
+      ) : (
+        <img src="./portrait.jpg" width={520} height={660} alt={`Portrait of ${hero.name}`} onError={() => setFailed(true)} />
+      )}
+    </div>
+  );
+}
+
 export function Hero() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [count, setCount] = useState(0);
   const [paused, setPaused] = useState(readPaused);
   const handle = useRef<{ setPaused(p: boolean): void } | null>(null);
   const pausedRef = useRef(paused);
-  const stats = computeStats(projects);
   useEffect(() => {
     if (heroMode(readHeroEnv()) !== "webgl") return;
     let dead = false;
@@ -76,27 +89,28 @@ export function Hero() {
       <div className="blob blob-violet" aria-hidden="true" />
       <div className="blob blob-cyan" aria-hidden="true" />
       <div className="hero-inner">
-        <p className="kicker"><span className="dot" aria-hidden="true" /> Software developer · Nepal</p>
-        <h1>Sabin Khanal</h1>
-        <p className="tagline">I build Android, web and game apps people love to use</p>
-        <p className="hero-sub">
-          {stats.apps} shipped apps and APIs, {stats.tests.toLocaleString("en-US")}+ automated tests, and a cloud pipeline that builds, tests and ships them with the laptop off.
-        </p>
-        <div className="cta">
-          <a className="btn" href="#projects">View projects</a>
-          <a className="btn btn-ghost" href="#contact">Contact</a>
-          <button type="button" className="btn btn-ghost print-btn" onClick={() => window.print()}>Save as PDF</button>
+        <div className="hero-copy">
+          <p className="kicker">Hello, I'm</p>
+          <h1>{hero.name}</h1>
+          <p className="tagline">{hero.tagline}</p>
+          <p className="hero-place"><span aria-hidden="true">📍</span> {contact.location}</p>
+          <div className="cta">
+            <a className="btn" href="#projects">View my work <span aria-hidden="true">→</span></a>
+            <a className="btn btn-ghost" href="#contact">Get in touch</a>
+            <button type="button" className="btn btn-ghost print-btn" onClick={() => window.print()}>Download CV</button>
+          </div>
+          <ul className="socials">
+            <li><a href={contact.github} target="_blank" rel="noreferrer" aria-label="GitHub profile">{"{ }"}</a></li>
+            <li><a href={contact.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn profile">in</a></li>
+            <li><a href={`mailto:${contact.email}`} aria-label="Email Sabin Khanal">@</a></li>
+          </ul>
         </div>
+        <Portrait />
       </div>
       {count > 0 && (
         <button type="button" className="btn btn-ghost motion-toggle" aria-pressed={paused} onClick={onToggle}>
           Pause motion
         </button>
-      )}
-      {count > 0 && (
-        <p className="hero-caption" aria-hidden="true">
-          {count.toLocaleString("en-US")} particles · hand-written WebGL · move to stir the range
-        </p>
       )}
     </section>
   );

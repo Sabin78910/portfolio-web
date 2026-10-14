@@ -1,21 +1,21 @@
 # Portfolio
-Sabin Khanal's developer portfolio: work grid, case studies, live product status.
+Sabin Khanal's CV portfolio: hero, about, experience, education, projects, contact.
 
 ## Stack
 React 19 · TypeScript (strict) · Vite · Vitest · ESLint. Installable PWA with offline support.
-Design: #07070C base, violet #7C3AED and cyan #22D3EE, Space Grotesk + Inter. Shared with sabin-labs.
+Design: #060912 navy base, blue #3B6CF6 → sky #60A5FA → violet #7C3AED, Space Grotesk + Inter.
 
 ## Commands
 - Dev: `npm run dev` · Build: `npm run build`
 - Test: `npm test` · Lint: `npm run lint && npm run typecheck`
 
 ## Architecture
-- `src/data.ts` is the single source of truth for projects · `src/hero/` WebGL particle range
-- `src/components/` Work, Systems, ContactForm · `src/status.ts` live health checks
+- `src/data.ts` is the single source of truth for all page content · `src/hero/` WebGL particle range
+- `src/components/` Hero, Projects, ContactForm, CountUp
 
 ## Data rules
-- Project data is static in `src/data.ts`; add new products there.
-- Test counts are recorded manually and go stale; update them when you touch them.
+- All content (about, experience, education, projects, skills) is static in `src/data.ts`.
+- The hero photo is `public/portrait.jpg`; a missing file falls back to the SK monogram.
 
 ## Testing rules
 - Every behaviour change needs a test. Pure logic in `src/*.ts` is unit-tested; components get the

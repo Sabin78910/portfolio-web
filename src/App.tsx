@@ -1,75 +1,36 @@
-import { useEffect, useState } from "react";
-import { flushSync } from "react-dom";
+import { useEffect, useState, type ReactNode } from "react";
 import { loadTheme, saveTheme, systemTheme, THEME_COLORS, type Theme } from "./theme";
 import { copyText } from "./clipboard";
-import { parseFilters, serializeFilters } from "./filterUrl";
-import { loadRepos, type Repo } from "./github";
-import { allTags, computeStats, contact, findBySlug, techStack, filterByQuery, filterByTag, projects, skills, type Project } from "./data";
+import { about, contact, education, experience, hero, heroStats, profileSummary, projects, techStack } from "./data";
 import { Hero } from "./components/Hero";
-import { CaseStudy, ProjectTile } from "./components/Work";
-import { Systems } from "./components/Systems";
+import { ProjectCard } from "./components/Projects";
 import { ContactForm } from "./components/ContactForm";
 import { CountUp } from "./components/CountUp";
-import { caseKeyAction } from "./caseKeys";
 
-const caseFromHash = (hash: string): Project | null => {
-  const m = /^#work\/([\w-]+)$/.exec(hash);
-  return m ? findBySlug(projects, m[1]) ?? null : null;
-};
-
-const reduceMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/** Morph between grid and case study with the View Transitions API where supported. */
-function transition(update: () => void) {
-  const d = document as Document & { startViewTransition?: (cb: () => void) => unknown };
-  if (d.startViewTransition && !reduceMotion()) d.startViewTransition(() => flushSync(update));
-  else update();
+/** Section heading: a ghost watermark behind a two-tone title, as used across the page. */
+function Head({ id, watermark, lead, accent, lede }: { id: string; watermark: string; lead: string; accent: string; lede?: ReactNode }) {
+  return (
+    <div className="section-head">
+      <span className="watermark" aria-hidden="true">{watermark}</span>
+      <h2 id={id}>{lead} <span className="accent">{accent}</span></h2>
+      {lede && <p className="lede">{lede}</p>}
+    </div>
+  );
 }
 
 export default function App() {
-  const [initial] = useState(() => parseFilters(window.location.search));
-  const [tag, setTag] = useState<string | null>(initial.tag);
-  const [query, setQuery] = useState(initial.query);
-  const [selected, setSelected] = useState<Project | null>(() => caseFromHash(window.location.hash));
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme());
-  const shown = filterByQuery(filterByTag(projects, tag), query);
-
-  useEffect(() => {
-    if (!selected) return;
-    const base = document.title;
-    document.title = `${selected.name} case study · Sabin Khanal`;
-    return () => {
-      document.title = base;
-    };
-  }, [selected]);
-
-  useEffect(() => {
-    const { pathname, hash } = window.location;
-    window.history.replaceState(window.history.state, "", `${pathname}${serializeFilters({ tag, query })}${hash}`);
-  }, [tag, query]);
-
-  useEffect(() => {
-    const onPop = () => {
-      const f = parseFilters(window.location.search);
-      setTag(f.tag);
-      setQuery(f.query);
-      setSelected(caseFromHash(window.location.hash));
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
-
-  // The browser jumps to the anchor before React renders it, so scroll once after the first render.
-  useEffect(() => {
-    const id = decodeURIComponent(window.location.hash.slice(1));
-    if (!id || id.startsWith("work/")) return;
-    document.getElementById(id)?.scrollIntoView?.({ behavior: "auto", block: "start" });
-  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);
   }, [theme]);
+
+  // The browser jumps to the anchor before React renders it, so scroll once after the first render.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id) document.getElementById(id)?.scrollIntoView?.({ behavior: "auto", block: "start" });
+  }, []);
 
   const toggleTheme = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -77,147 +38,154 @@ export default function App() {
     saveTheme(next);
   };
 
-  const scrollToWork = () =>
-    document.getElementById("projects")?.scrollIntoView?.({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
-
-  // Opening from the grid pushes one history entry; prev/next inside a case study replace it, so Back always returns to the grid.
-  const openCase = (p: Project, replace = false) => {
-    const { pathname, search } = window.location;
-    const url = `${pathname}${search}#work/${p.slug}`;
-    if (replace) window.history.replaceState(window.history.state, "", url);
-    else window.history.pushState({ case: p.slug }, "", url);
-    transition(() => setSelected(p));
-    scrollToWork();
-  };
-
-  const at = (i: number) => projects[(i + projects.length) % projects.length];
-
-  const closeCase = () => {
-    const slug = selected?.slug;
-    const pushed = (window.history.state as { case?: string } | null)?.case;
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-    transition(() => setSelected(null));
-    if (pushed) window.history.back();
-    requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-case="${slug}"]`)?.focus());
-  };
-
-  useEffect(() => {
-    if (!selected) return;
-    const i = projects.indexOf(selected);
-    const onKey = (e: KeyboardEvent) => {
-      const a = caseKeyAction(e);
-      if (!a) return;
-      e.preventDefault();
-      if (a === "close") closeCase();
-      else openCase(at(a === "prev" ? i - 1 : i + 1), true);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
-
-  // A shared #work/<slug> link lands on the case study, not the hero.
-  useEffect(() => {
-    if (caseFromHash(window.location.hash)) document.getElementById("projects")?.scrollIntoView?.({ block: "start" });
-  }, []);
-
-  const index = selected ? projects.indexOf(selected) : -1;
-
   return (
     <>
-    <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to main content</a>
-    <header className="topbar">
-      <a className="brand" href="#top" aria-label="Sabin Khanal, back to top"><span aria-hidden="true">SK</span></a>
-      <nav className="nav" aria-label="Sections">
-        <a href="#projects">Work</a>
-        <a href="#systems">Systems</a>
-        <a href="#skills">Skills</a>
+      <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to main content</a>
+      <header className="topbar">
+        <a className="brand" href="#top">{hero.name}</a>
+        <nav className="nav" aria-label="Sections">
+          <a href="#about">About</a>
+          <a href="#experience">Experience</a>
+          <a href="#education">Education</a>
+          <a href="#projects">Projects</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <button className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Light theme" : "Dark theme"}>
+          <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          <span className="btn-label">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
+        </button>
+        <button type="button" className="icon-btn print-btn" onClick={() => window.print()}>CV</button>
         <a href="#contact" className="nav-cta">Let's talk</a>
-      </nav>
-      <button className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Light theme" : "Dark theme"}>
-        <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-        <span className="btn-label">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
-      </button>
-    </header>
-    <main id="main" tabIndex={-1}>
-      <Hero />
-      <Stats />
-      <section id="projects" className="work" aria-labelledby="work-heading">
-        <div className="section-head">
-          <p className="eyebrow">Selected work</p>
-          <h2 id="work-heading">Real apps, live and tested</h2>
-          <p className="lede">Every card pings its app right now. Open a case study for the problem, the research, the design and the result.</p>
-        </div>
-      {selected ? (
-        <CaseStudy project={selected} onBack={closeCase} prev={at(index - 1)} next={at(index + 1)} onGo={(p) => openCase(p, true)} />
-      ) : (
-        <>
-      <div className="work-tools">
-        <input
-          className="search"
-          type="search"
-          aria-label="Search projects"
-          placeholder="Search projects…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div className="chips">
-          <button onClick={() => setTag(null)} aria-pressed={tag === null}>All</button>
-          {allTags(projects).map((t) => (
-            <button key={t} onClick={() => setTag(t)} aria-pressed={tag === t}>{t}</button>
+      </header>
+
+      <main id="main" tabIndex={-1}>
+        <Hero />
+
+        <section className="stats" aria-label="Stats">
+          {heroStats.map((s) => (
+            <div className="stat" key={s.label}>
+              <strong><CountUp value={s.value} suffix={s.suffix} /></strong>
+              <span>{s.label}</span>
+            </div>
           ))}
-        </div>
-      </div>
-      <p className="work-count" aria-live="polite">{shown.length} of {projects.length} projects</p>
+        </section>
 
-      <div className="bento">
-        {shown.map((p) => (
-          <ProjectTile key={p.name} p={p} onOpen={() => openCase(p)} />
-        ))}
-      </div>
-        </>
-      )}
-      </section>
-
-      <Systems />
-
-      <Marquee />
-
-      <section id="skills" className="skills" aria-labelledby="skills-heading">
-        <div className="section-head">
-          <p className="eyebrow">Toolbox</p>
-          <h2 id="skills-heading">Skills</h2>
-        </div>
-        <div className="skill-grid">
-        {skills.map((g) => (
-          <div role="group" aria-label={g.area} key={g.area} className="skill">
-            <h3>{g.area}</h3>
-            <ul>
-              {g.items.map((i) => (
-                <li key={i}>{i}</li>
+        <section id="about" aria-labelledby="about-heading">
+          <Head id="about-heading" watermark="About" lead="About" accent="me" />
+          <div className="about-grid">
+            <div className="about-copy">
+              {about.paragraphs.map((p) => (
+                <p key={p.slice(0, 24)}>{p}</p>
               ))}
-            </ul>
+              {about.notes.map((n) => (
+                <p className="note" key={n.label}><strong>{n.label}:</strong> {n.text}</p>
+              ))}
+              <a className="btn btn-ghost-theme" href={contact.linkedin} target="_blank" rel="noreferrer">Find me on LinkedIn <span aria-hidden="true">↗</span></a>
+            </div>
+            <div className="card profile-card">
+              <h3>Profile summary</h3>
+              <dl>
+                {profileSummary.map((r) => (
+                  <div key={r.term}>
+                    <dt>{r.term}</dt>
+                    <dd>{r.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
-        ))}
-        </div>
-      </section>
+        </section>
 
-      <GitHubActivity />
+        <section id="experience" aria-labelledby="experience-heading">
+          <Head
+            id="experience-heading"
+            watermark="Experience"
+            lead="Where I've"
+            accent="worked."
+            lede="Technology-driven professional with 3+ years of experience in software development, project management and technical support, focused on bridging AI, APIs and automation into intelligent, scalable, data-driven solutions."
+          />
+          <p className="head-cta">
+            <button type="button" className="btn btn-ghost-theme print-btn" onClick={() => window.print()}>Download CV</button>
+          </p>
+          <ol className="jobs">
+            {experience.map((j) => (
+              <li className="card job" key={j.title}>
+                <p className="dates">{j.dates}</p>
+                <h3>{j.title}</h3>
+                <p className="where">{j.company} · {j.place}</p>
+                <ul className="job-points">
+                  {j.points.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+                <ul className="tags" aria-label={`Tools: ${j.title}`}>
+                  {j.tags.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-      <section id="contact" aria-labelledby="contact-heading" className="card contact-card">
-        <div className="contact-copy">
-          <p className="eyebrow">Let's build something</p>
-          <h2 id="contact-heading">Contact</h2>
-          <p>Have a project or role in mind? Let's talk. Write a message here, or reach me directly.</p>
-          <div className="cta">
-            <a className="btn" href={`mailto:${contact.email}`}>Email</a>
-            <CopyEmail />
-            <a className="btn btn-ghost-theme" href={contact.github} target="_blank" rel="noreferrer">GitHub</a>
+        <section id="education" aria-labelledby="education-heading">
+          <Head id="education-heading" watermark="Education" lead="Where I've" accent="studied." />
+          <ul className="schools">
+            {education.map((e) => (
+              <li className="card school" key={e.degree}>
+                <p className="dates">{e.years}</p>
+                <h3>{e.degree}</h3>
+                <p className="where">{e.school}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="projects" aria-labelledby="projects-heading">
+          <Head
+            id="projects-heading"
+            watermark="Projects"
+            lead="Projects,"
+            accent="built end to end."
+            lede="Practical implementations in SQL, React, Python, Laravel, PHP, JavaScript, R and machine learning."
+          />
+          <div className="bento">
+            {projects.map((p, i) => (
+              <ProjectCard key={p.name} p={p} index={i} />
+            ))}
           </div>
-        </div>
-        <ContactForm />
-      </section>
-      <footer className="footer">© {new Date().getFullYear()} Sabin Khanal · Built with React &amp; Vite · Hand-written WebGL hero · No trackers</footer>
-    </main>
+        </section>
+
+        <Marquee />
+
+        <section className="github" aria-labelledby="github-heading">
+          <Head
+            id="github-heading"
+            watermark="GitHub"
+            lead="More projects on"
+            accent="GitHub"
+            lede="Combining modern web technology with AI and machine learning to solve real business problems — and uncover the data stories behind them."
+          />
+          <p className="github-note">Explore the full breadth of my work, open-source contributions and personal experiments on GitHub.</p>
+          <a className="btn" href={contact.github} target="_blank" rel="noreferrer">Visit GitHub <span aria-hidden="true">↗</span></a>
+        </section>
+
+        <section id="contact" aria-labelledby="contact-heading" className="card contact-card">
+          <div className="contact-copy">
+            <p className="eyebrow">Let's build something</p>
+            <h2 id="contact-heading">Get in <span className="accent">touch.</span></h2>
+            <p>Have a project or role in mind? Let's talk. Write a message here, or reach me directly.</p>
+            <div className="cta">
+              <a className="btn" href={`mailto:${contact.email}`}>Email</a>
+              <CopyEmail />
+              <a className="btn btn-ghost-theme" href={contact.github} target="_blank" rel="noreferrer">GitHub</a>
+            </div>
+          </div>
+          <ContactForm />
+        </section>
+
+        <footer className="footer">© {new Date().getFullYear()} {hero.name}</footer>
+      </main>
     </>
   );
 }
@@ -242,28 +210,8 @@ function CopyEmail() {
   );
 }
 
-function Stats() {
-  const s = computeStats(projects);
-  const items: [number, string, string][] = [
-    [s.apps, "+", "Apps built"],
-    [s.apis, "", "Live APIs"],
-    [s.tested, "", "Projects with automated tests"],
-    [s.tests, "+", "Automated tests"],
-  ];
-  return (
-    <section className="stats" aria-label="Stats">
-      {items.map(([n, suffix, l]) => (
-        <div className="stat" key={l}>
-          <strong><CountUp value={n} suffix={suffix} /></strong>
-          <span>{l}</span>
-        </div>
-      ))}
-    </section>
-  );
-}
-
 function Marquee() {
-  const stack = techStack(projects);
+  const stack = techStack();
   const [paused, setPaused] = useState(false);
   return (
     <section className="marquee" aria-label="Tech stack" data-paused={paused ? "true" : undefined}>
@@ -280,39 +228,6 @@ function Marquee() {
           <li className="pill" key={t}>{t}</li>
         ))}
       </ul>
-    </section>
-  );
-}
-
-function GitHubActivity() {
-  const [repos, setRepos] = useState<Repo[] | null | undefined>(undefined);
-  useEffect(() => {
-    let active = true;
-    loadRepos(contact.github.split("/").pop() ?? "").then((r) => active && setRepos(r));
-    return () => {
-      active = false;
-    };
-  }, []);
-  return (
-    <section aria-labelledby="activity-heading" className="activity">
-      <h2 id="activity-heading">GitHub activity</h2>
-      {repos === undefined && <p className="muted">Loading…</p>}
-      {repos === null || (repos && repos.length === 0) ? (
-        <p>
-          <a href={contact.github} target="_blank" rel="noreferrer">See my GitHub profile →</a>
-        </p>
-      ) : (
-        <ul className="activity-list">
-          {repos?.slice(0, 6).map((r) => (
-            <li key={r.name}>
-              <a href={r.url} target="_blank" rel="noreferrer">{r.name}</a>
-              <span className="muted">
-                {" "}— {r.language ?? "n/a"} · ★ {r.stars} · updated {r.updated.slice(0, 10)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
     </section>
   );
 }
