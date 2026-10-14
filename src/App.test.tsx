@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
-import { contact, education, experience, hero, heroStats, profileSummary, projects, techStack } from "./data";
+import { contact, CV_FILE, education, experience, hero, heroStats, profileSummary, projects, techStack } from "./data";
 
 afterEach(() => {
   window.history.replaceState(null, "", "/");
@@ -99,13 +99,14 @@ describe("controls", () => {
     expect(within(strip).getByRole("button", { name: "Play animation" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("prints the page from the CV buttons", async () => {
-    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+  it("downloads the CV PDF from every CV link", () => {
     render(<App />);
-    await userEvent.click(screen.getAllByRole("button", { name: "Download CV" })[0]);
-    await userEvent.click(screen.getByRole("button", { name: "CV" }));
-    expect(print).toHaveBeenCalledTimes(2);
-    print.mockRestore();
+    const links = [...screen.getAllByRole("link", { name: /Download CV/ }), screen.getByRole("link", { name: "CV" })];
+    expect(links).toHaveLength(3);
+    for (const a of links) {
+      expect(a).toHaveAttribute("href", CV_FILE);
+      expect(a).toHaveAttribute("download");
+    }
   });
 
   it("copies the email address", async () => {

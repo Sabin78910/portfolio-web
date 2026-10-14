@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { loadTheme, saveTheme, systemTheme, THEME_COLORS, type Theme } from "./theme";
 import { copyText } from "./clipboard";
-import { about, contact, education, experience, hero, heroStats, profileSummary, projects, techStack } from "./data";
+import { about, contact, CV_FILE, education, experience, hero, heroStats, profileSummary, projects, techStack } from "./data";
 import { Hero } from "./components/Hero";
 import { ProjectCard } from "./components/Projects";
 import { ContactForm } from "./components/ContactForm";
@@ -54,7 +54,7 @@ export default function App() {
           <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
           <span className="btn-label">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
         </button>
-        <button type="button" className="icon-btn print-btn" onClick={() => window.print()}>CV</button>
+        <a className="icon-btn print-btn" href={CV_FILE} download>CV</a>
         <a href="#contact" className="nav-cta">Let's talk</a>
       </header>
 
@@ -105,7 +105,7 @@ export default function App() {
             lede="Technology-driven professional with 3+ years of experience in software development, project management and technical support, focused on bridging AI, APIs and automation into intelligent, scalable, data-driven solutions."
           />
           <p className="head-cta">
-            <button type="button" className="btn btn-ghost-theme print-btn" onClick={() => window.print()}>Download CV</button>
+            <a className="btn btn-ghost-theme print-btn" href={CV_FILE} download>Download CV <span aria-hidden="true">⤓</span></a>
           </p>
           <ol className="jobs">
             {experience.map((j) => (

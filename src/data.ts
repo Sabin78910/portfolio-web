@@ -7,6 +7,9 @@ export const contact = {
   location: "Kathmandu, Nepal",
 };
 
+/** Downloadable CV in public/; `download` keeps the browser from opening it in a tab. */
+export const CV_FILE = "./Sabin-Khanal-CV.pdf";
+
 export const hero = {
   name: "Sabin Khanal",
   tagline: "Bridging AI, APIs & Automation | Data Science | AI Solutions",

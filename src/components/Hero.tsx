@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readPaused, togglePaused, writePaused } from "../hero/pause";
 import { heroMode, readHeroEnv, ridgeHeight } from "../hero/support";
-import { contact, hero } from "../data";
+import { contact, CV_FILE, hero } from "../data";
 
 const LAYERS = [
   { z: 1, base: 440, scale: 210, cls: "far" },
@@ -40,7 +40,7 @@ function Portrait() {
       {failed ? (
         <span className="portrait-fallback">SK</span>
       ) : (
-        <img src="./portrait.jpg" width={520} height={660} alt={`Portrait of ${hero.name}`} onError={() => setFailed(true)} />
+        <img src="./portrait.jpg" width={593} height={760} alt={`Portrait of ${hero.name}`} onError={() => setFailed(true)} />
       )}
     </div>
   );
@@ -97,7 +97,7 @@ export function Hero() {
           <div className="cta">
             <a className="btn" href="#projects">View my work <span aria-hidden="true">→</span></a>
             <a className="btn btn-ghost" href="#contact">Get in touch</a>
-            <button type="button" className="btn btn-ghost print-btn" onClick={() => window.print()}>Download CV</button>
+            <a className="btn btn-ghost print-btn" href={CV_FILE} download>Download CV <span aria-hidden="true">⤓</span></a>
           </div>
           <ul className="socials">
             <li><a href={contact.github} target="_blank" rel="noreferrer" aria-label="GitHub profile">{"{ }"}</a></li>
